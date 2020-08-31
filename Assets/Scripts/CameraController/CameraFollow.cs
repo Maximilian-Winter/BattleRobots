@@ -20,13 +20,19 @@ public class CameraFollow : MonoBehaviour
 
     private void HandleTranslation()
     {
-        var targetPosition = Target.TransformPoint(offset);
-        transform.position = Vector3.Lerp(transform.position, targetPosition, translateSpeed * Time.deltaTime);
+        if(Target != null)
+        {
+            Vector3 targetPosition = Target.TransformPoint(offset);
+            transform.position = Vector3.Lerp(transform.position, targetPosition, translateSpeed * Time.deltaTime);
+        }
     }
     private void HandleRotation()
     {
-        var direction = Target.position - transform.position;
-        var rotation = Quaternion.LookRotation(direction, Vector3.up);
-        transform.rotation = Quaternion.Lerp(transform.rotation, rotation, rotationSpeed * Time.deltaTime);
+        if (Target != null)
+        {
+            Vector3 direction = Target.position - transform.position;
+            Quaternion rotation = Quaternion.LookRotation(direction, Vector3.up);
+            transform.rotation = Quaternion.Lerp(transform.rotation, rotation, rotationSpeed * Time.deltaTime);
+        }
     }
 }

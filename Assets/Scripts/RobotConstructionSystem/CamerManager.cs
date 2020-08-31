@@ -31,7 +31,15 @@ public class CamerManager : MonoBehaviour
 
     public void EnableFollowCamera()
     {
-        followCamera.Target = robotConstructionController.RobotRootObject.transform;
+        if(robotConstructionController.RobotRootObject != null)
+        {
+            followCamera.Target = robotConstructionController.RobotRootObject.transform;
+        }
+        else
+        {
+            followCamera.Target = null;
+        }
+        
         freeCamera.enabled = false;
         followCamera.enabled = true;
     }

@@ -118,7 +118,7 @@ public class SaveLoadManager : MonoBehaviour
     public void SaveFile()
     {
         string path = Application.persistentDataPath + "/Saves/Robots/" + fileNameInputField.GetComponentInChildren<InputField>().text + ".robot";
-        RobotData robotData = robotConstructionController.SaveCurrentRobot();
+        RobotData robotData = robotConstructionController.SaveRobot();
         if(robotData != null)
         {
             robotData.SaveState(path);

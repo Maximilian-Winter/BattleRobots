@@ -18,8 +18,7 @@ public class RobotPartRuntimeObject
 }
 public class RobotConstructionController : MonoBehaviour
 {
-    [SerializeField]
-    private List<RobotPart> allRobotParts;
+    
 
 
     [SerializeField]
@@ -28,42 +27,12 @@ public class RobotConstructionController : MonoBehaviour
     [SerializeField]
     private TabGroup partsMenuTabGroup;
 
-
+    [SerializeField]
+    private PartsManager partsManager;
 
     [SerializeField]
-    private GameObject partsTab;
+    private PartSettingsManager partSettingsManager;
 
-    [SerializeField]
-    private TabButton corePartsButton;
-
-    [SerializeField]
-    private TabButton wheelPartsButton;
-
-
-
-    [SerializeField]
-    private GameObject partSettingsTab;
-
-    [SerializeField]
-    private Text partSettingsPartName;
-
-    [SerializeField]
-    private Text partSettingsPartType;
-
-    [SerializeField]
-    private GameObject partSettingsWheelSettings;
-
-    [SerializeField]
-    private Toggle partSettingsWheelDirectionToggle;
-
-    [SerializeField]
-    private Toggle partSettingsWheelActivateMotorToggle;
-
-    [SerializeField]
-    private Toggle partSettingsWheelActivateSteeringToggle;
-
-    [SerializeField]
-    private GameObject partSettingsButton;
 
     private RobotData currentRobot;
 
@@ -82,12 +51,11 @@ public class RobotConstructionController : MonoBehaviour
 
     private bool isInPlacingPartMode = false;
 
-    private bool isPartsOpen = false;
-
-    private bool isPartSettingsOpen = false;
-
     public RobotData CurrentRobot { get => currentRobot; set => currentRobot = value; }
     public GameObject RobotRootObject { get => robotRootObject; set => robotRootObject = value; }
+    public List<RobotPartRuntimeObject> RobotParts { get => robotParts; set => robotParts = value; }
+    public RobotPart SelectedRobotPart { get => selectedRobotPart; set => selectedRobotPart = value; }
+    public GameObject SelectedRobotPartGameObject { get => selectedRobotPartGameObject; set => selectedRobotPartGameObject = value; }
 
     // Start is called before the first frame update
     void Start()
@@ -103,12 +71,12 @@ public class RobotConstructionController : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Y))
             {
-                selectedRobotPartGameObject.transform.rotation *= Quaternion.Euler(Vector3.up * 90);
+                SelectedRobotPartGameObject.transform.rotation *= Quaternion.Euler(Vector3.up * 90);
             }
 
             if (Input.GetKeyDown(KeyCode.X))
             {
-                selectedRobotPartGameObject.transform.rotation *= Quaternion.Euler(Vector3.up * -90);
+                SelectedRobotPartGameObject.transform.rotation *= Quaternion.Euler(Vector3.up * -90);
             }
 
             if (Input.GetAxis("Mouse ScrollWheel") > 0f) // forward
@@ -122,9 +90,9 @@ public class RobotConstructionController : MonoBehaviour
 
             RecalculatePlacingPos();
 
-            selectedRobotPartGameObject.transform.position = placingPosition;
+            SelectedRobotPartGameObject.transform.position = placingPosition;
 
-            if(robotParts != null)
+            if(RobotParts != null)
             {
                 RaycastHit hitInfo = new RaycastHit();
                 bool hit = Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo);
@@ -132,59 +100,42 @@ public class RobotConstructionController : MonoBehaviour
                 {
                     if (hitInfo.transform.gameObject.tag == "RobotPart")
                     {
-                        selectedRobotPartGameObject.transform.position = new Vector3(hitInfo.point.x, SnapTo(hitInfo.point.y, 0.025f), hitInfo.point.z);
-                        if (Input.GetMouseButtonDown(0) && !isPartsOpen && !isPartSettingsOpen && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
+                        SelectedRobotPartGameObject.transform.position = new Vector3(hitInfo.point.x, SnapTo(hitInfo.point.y, 0.025f), hitInfo.point.z);
+                        if (Input.GetMouseButtonDown(0) && !partsManager.IsPartsOpen && !partSettingsManager.IsPartSettingsOpen && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
                         {
                             isInPlacingPartMode = false;
-                            selectedRobotPartGameObject.transform.parent = hitInfo.transform.parent;
-                            selectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = hitInfo.transform.GetComponent<Rigidbody>();
-                            AddRobotPartRuntimeObject(selectedRobotPart, selectedRobotPartGameObject);
-
-                            if (selectedRobotPart.robotPartType == RobotPartType.CorePart)
-                            {
-                                selectedRobotPartGameObject.GetComponent<CorePart>().OnIsPlaced();
-                            }
-
-                            if (selectedRobotPart.robotPartType == RobotPartType.WheelPart)
-                            {
-                                selectedRobotPartGameObject.GetComponent<WheelPart>().OnIsPlaced();
-                            }
+                            SelectedRobotPartGameObject.transform.parent = hitInfo.transform.parent;
+                            SelectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = hitInfo.transform.GetComponent<Rigidbody>();
+                            SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                            AddRobotPartRuntimeObject(SelectedRobotPart, SelectedRobotPartGameObject);
                         }
                     }
                     else
                     {
-                        selectedRobotPartGameObject.transform.position = placingPosition;
+                        SelectedRobotPartGameObject.transform.position = placingPosition;
                     }
                 }
                 else
                 {
-                    selectedRobotPartGameObject.transform.position = placingPosition;
+                    SelectedRobotPartGameObject.transform.position = placingPosition;
                 }
             }
             else
             {
-                if (Input.GetMouseButtonDown(0) && !isPartsOpen && !isPartSettingsOpen && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
+                if (Input.GetMouseButtonDown(0) && !partsManager.IsPartsOpen && !partSettingsManager.IsPartSettingsOpen && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
                 {
                     isInPlacingPartMode = false;
-                    if (selectedRobotPart.robotPartType == RobotPartType.CorePart)
-                    {
-                        selectedRobotPartGameObject.GetComponent<CorePart>().OnIsPlaced();
-                    }
-
-                    if (selectedRobotPart.robotPartType == RobotPartType.WheelPart)
-                    {
-                        selectedRobotPartGameObject.GetComponent<WheelPart>().OnIsPlaced();
-                    }
-                    selectedRobotPartGameObject.transform.parent = robotBodyGameObject.transform;
-                    RobotRootObject = selectedRobotPartGameObject;
-                    AddRobotPartRuntimeObject(selectedRobotPart, selectedRobotPartGameObject);
+                    SelectedRobotPartGameObject.transform.parent = robotBodyGameObject.transform;
+                    RobotRootObject = SelectedRobotPartGameObject;
+                    SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                    AddRobotPartRuntimeObject(SelectedRobotPart, SelectedRobotPartGameObject);
                 }
             }
            
         }
         else
         {
-            if (Input.GetMouseButtonDown(0) && !isPartsOpen && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
+            if (Input.GetMouseButtonDown(0) && !partsManager.IsPartsOpen && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
             {
                 RaycastHit hitInfo = new RaycastHit();
                 bool hit = Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo);
@@ -192,24 +143,31 @@ public class RobotConstructionController : MonoBehaviour
                 {
                     if (hitInfo.transform.gameObject.tag == "RobotPart")
                     {
-                        selectedRobotPartGameObject = hitInfo.transform.gameObject;
-                        selectedRobotPart = GetRobotPart(selectedRobotPartGameObject);
-                        partSettingsButton.SetActive(true);
-                        OpenPartSettings();
+                        if(selectedRobotPartGameObject != null)
+                        {
+                            SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                        }
+                        SelectedRobotPartGameObject = hitInfo.transform.gameObject;
+                        SelectedRobotPart = GetRobotPart(SelectedRobotPartGameObject);
+                        SelectedRobotPartGameObject.GetComponent<Outline>().enabled = true;
+                        partSettingsManager.ShowPartSettingsButton();
+                        partSettingsManager.OpenPartSettings();
                     }
                     else
                     {
-                        selectedRobotPartGameObject = null;
-                        selectedRobotPart = null;
-                        partSettingsButton.SetActive(false);
+                        SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                        SelectedRobotPartGameObject = null;
+                        SelectedRobotPart = null;
+                        partSettingsManager.HidePartSettingsButton();
                         mainMenuTabGroup.ResetTabGroup();
                     }
                 }
                 else
                 {
-                    selectedRobotPartGameObject = null;
-                    selectedRobotPart = null;
-                    partSettingsButton.SetActive(false);
+                    SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                    SelectedRobotPartGameObject = null;
+                    SelectedRobotPart = null;
+                    partSettingsManager.HidePartSettingsButton();
                     mainMenuTabGroup.ResetTabGroup();
                 }
             }
@@ -224,17 +182,27 @@ public class RobotConstructionController : MonoBehaviour
 
     private void AddRobotPartRuntimeObject(RobotPart robotPart, GameObject robotPartGameObject)
     {
-        if(robotParts == null)
+        if(RobotParts == null)
         {
-            robotParts = new List<RobotPartRuntimeObject>();
+            RobotParts = new List<RobotPartRuntimeObject>();
         }
 
-        robotParts.Add(new RobotPartRuntimeObject(robotPart, robotPartGameObject));
+        RobotParts.Add(new RobotPartRuntimeObject(robotPart, robotPartGameObject));
+
+        if (robotPart.robotPartType == RobotPartType.CorePart)
+        {
+            robotPartGameObject.GetComponent<CorePart>().OnIsPlaced();
+        }
+
+        if (robotPart.robotPartType == RobotPartType.WheelPart)
+        {
+            robotPartGameObject.GetComponent<WheelPart>().OnIsPlaced();
+        }
     }
 
     private RobotPart GetRobotPart(GameObject robotPartGameObject)
     {
-        foreach (RobotPartRuntimeObject robotPartRuntimeObject in robotParts)
+        foreach (RobotPartRuntimeObject robotPartRuntimeObject in RobotParts)
         {
             if (robotPartRuntimeObject.robotPartGameObject == robotPartGameObject)
             {
@@ -245,18 +213,24 @@ public class RobotConstructionController : MonoBehaviour
         return null;
     }
 
-    private RobotPart GetRobotPartFromRobotDataEntry(RobotDataEntry robotDataEntry)
+    public void DeleteRobot()
     {
-        RobotPart part = allRobotParts.First(item => item.robotPartIdentifier == robotDataEntry.robotPartIdentifier);
-        return part;
+        if (RobotParts != null)
+        {
+            foreach (RobotPartRuntimeObject robotPartRuntimeObject in RobotParts)
+            {
+                Destroy(robotPartRuntimeObject.robotPartGameObject);
+            }
+        }
+        RobotParts = null;
     }
 
-    public RobotData SaveCurrentRobot()
+    public RobotData SaveRobot()
     {
-        if (robotParts != null)
+        if (RobotParts != null)
         {
             CurrentRobot.robotDataEntries = new List<RobotDataEntry>();
-            foreach (RobotPartRuntimeObject robotPartRuntimeObject in robotParts)
+            foreach (RobotPartRuntimeObject robotPartRuntimeObject in RobotParts)
             {
                 List<bool> boolPartSettings = new List<bool>();
 
@@ -269,58 +243,45 @@ public class RobotConstructionController : MonoBehaviour
                 CurrentRobot.robotDataEntries.Add(new RobotDataEntry(robotPartRuntimeObject.robotPart.robotPartIdentifier, robotPartRuntimeObject.robotPartGameObject.transform.localPosition, robotPartRuntimeObject.robotPartGameObject.transform.localRotation, new RobotDataEntrySettings(boolPartSettings)));
             }
         }
+        else
+        {
+            currentRobot = null;
+        }
 
         return CurrentRobot;
     }
 
-    public void DeleteRobot()
-    {
-        if (robotParts != null)
-        {
-            foreach (RobotPartRuntimeObject robotPartRuntimeObject in robotParts)
-            {
-                Destroy(robotPartRuntimeObject.robotPartGameObject);
-            }
-        }
-        robotParts = null;
-    }
 
     public void LoadRobot()
     {
         if (CurrentRobot.robotDataEntries != null)
         {
-            if(robotParts != null)
-            {
-                foreach (RobotPartRuntimeObject robotPartRuntimeObject in robotParts)
-                {
-                    Destroy(robotPartRuntimeObject.robotPartGameObject);
-                }
-            }
-            robotParts = new List<RobotPartRuntimeObject>();
+            DeleteRobot();
+            RobotParts = new List<RobotPartRuntimeObject>();
             bool firstEntry = true;
             foreach (RobotDataEntry robotDataEntry in CurrentRobot.robotDataEntries)
             {
-                selectedRobotPart = GetRobotPartFromRobotDataEntry(robotDataEntry);
-                selectedRobotPartGameObject = Instantiate(selectedRobotPart.robotPartPrefab);
-                selectedRobotPartGameObject.transform.parent = robotBodyGameObject.transform;
-                selectedRobotPartGameObject.transform.localPosition = robotDataEntry.robotPartLocalPosition;
-                selectedRobotPartGameObject.transform.localRotation = robotDataEntry.robotPartLocalRotation;
-                if (selectedRobotPart.robotPartType == RobotPartType.WheelPart)
+                SelectedRobotPart = partsManager.GetRobotPartFromRobotDataEntry(robotDataEntry);
+                SelectedRobotPartGameObject = Instantiate(SelectedRobotPart.robotPartPrefab);
+                SelectedRobotPartGameObject.transform.parent = robotBodyGameObject.transform;
+                SelectedRobotPartGameObject.transform.localPosition = robotDataEntry.robotPartLocalPosition;
+                SelectedRobotPartGameObject.transform.localRotation = robotDataEntry.robotPartLocalRotation;
+                if (SelectedRobotPart.robotPartType == RobotPartType.WheelPart)
                 {
-                    selectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = RobotRootObject.GetComponent<Rigidbody>();
+                    SelectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = RobotRootObject.GetComponent<Rigidbody>();
 
-                    selectedRobotPartGameObject.GetComponent<SimpleWheelController>().SetActivateMotor(robotDataEntry.robotPartSettings.boolSettings[0]);
-                    selectedRobotPartGameObject.GetComponent<SimpleWheelController>().SetActivateSteering(robotDataEntry.robotPartSettings.boolSettings[1]);
-                    selectedRobotPartGameObject.GetComponent<SimpleWheelController>().SetReverseSpinDirection(robotDataEntry.robotPartSettings.boolSettings[2]);
+                    SelectedRobotPartGameObject.GetComponent<SimpleWheelController>().SetActivateMotor(robotDataEntry.robotPartSettings.boolSettings[0]);
+                    SelectedRobotPartGameObject.GetComponent<SimpleWheelController>().SetActivateSteering(robotDataEntry.robotPartSettings.boolSettings[1]);
+                    SelectedRobotPartGameObject.GetComponent<SimpleWheelController>().SetReverseSpinDirection(robotDataEntry.robotPartSettings.boolSettings[2]);
                 }
 
 
                 if (firstEntry)
                 {
-                    RobotRootObject = selectedRobotPartGameObject;
+                    RobotRootObject = SelectedRobotPartGameObject;
                     firstEntry = false;
                 }
-                AddRobotPartRuntimeObject(selectedRobotPart, selectedRobotPartGameObject);
+                AddRobotPartRuntimeObject(SelectedRobotPart, SelectedRobotPartGameObject);
             }
 
         }
@@ -328,15 +289,16 @@ public class RobotConstructionController : MonoBehaviour
 
     public void PlaceNewPart(RobotPart robotPart)
     {
-        partSettingsButton.SetActive(false);
-        selectedRobotPart = robotPart;
-        selectedRobotPartGameObject = Instantiate(robotPart.robotPartPrefab);
+        partSettingsManager.HidePartSettingsButton();
+        SelectedRobotPart = robotPart;
+        SelectedRobotPartGameObject = Instantiate(robotPart.robotPartPrefab);
+        SelectedRobotPartGameObject.GetComponent<Outline>().enabled = true;
         isInPlacingPartMode = true;
     }
 
     public void GoIntoTestMode()
     {
-        foreach(RobotPartRuntimeObject robotPartRuntimeObject in robotParts)
+        foreach(RobotPartRuntimeObject robotPartRuntimeObject in RobotParts)
         {
             if(robotPartRuntimeObject.robotPart.robotPartType == RobotPartType.CorePart)
             {
@@ -349,85 +311,6 @@ public class RobotConstructionController : MonoBehaviour
         }
     }
 
-    public void OpenParts()
-    {
-        isPartsOpen = true;
-        if (robotParts == null)
-        {
-            wheelPartsButton.SetIsDeactivated(true);
-        }
-        else
-        {
-            corePartsButton.SetIsDeactivated(true);
-            wheelPartsButton.SetIsDeactivated(false);
-        }
-    }
-
-    public void CloseParts()
-    {
-        isPartsOpen = false;
-    }
-
-    public void OpenPartSettings()
-    {
-        isPartSettingsOpen = true;
-        if (selectedRobotPart != null && selectedRobotPartGameObject != null)
-        {
-            partSettingsPartName.text = "Part Name: " + selectedRobotPart.robotPartName;
-
-            if (selectedRobotPart.robotPartType == RobotPartType.CorePart)
-            {
-                partSettingsPartType.text = "Part Type: Core Part";
-                partSettingsWheelSettings.SetActive(false);
-            }
-            else if (selectedRobotPart.robotPartType == RobotPartType.WheelPart)
-            {
-                partSettingsPartType.text = "Part Type: Wheel";
-                partSettingsWheelSettings.SetActive(true);
-                partSettingsWheelActivateMotorToggle.isOn = selectedRobotPartGameObject.GetComponent<SimpleWheelController>().GetActivateMotor();
-                partSettingsWheelActivateSteeringToggle.isOn = selectedRobotPartGameObject.GetComponent<SimpleWheelController>().GetActivateSteering();
-                partSettingsWheelDirectionToggle.isOn = selectedRobotPartGameObject.GetComponent<SimpleWheelController>().GetReverseSpinDirection();
-            }
-        }
-    }
-
-    public void ClosePartSettings()
-    {
-        isPartSettingsOpen = false;
-    }
-
-    public void PartSettingActivateMotorHasChanged(bool value)
-    {
-        if (selectedRobotPart != null && selectedRobotPartGameObject != null)
-        {
-            if (selectedRobotPart.robotPartType == RobotPartType.WheelPart)
-            {
-                selectedRobotPartGameObject.GetComponent<SimpleWheelController>().SetActivateMotor(value);
-            }
-        }
-    }
-
-    public void PartSettingActivateSteeringHasChanged(bool value)
-    {
-        if (selectedRobotPart != null && selectedRobotPartGameObject != null)
-        {
-            if (selectedRobotPart.robotPartType == RobotPartType.WheelPart)
-            {
-                selectedRobotPartGameObject.GetComponent<SimpleWheelController>().SetActivateSteering(value);
-            }
-        }
-    }
-
-    public void PartSettingReverseWheelDirectionHasChanged(bool value)
-    {
-        if (selectedRobotPart != null && selectedRobotPartGameObject != null)
-        {
-            if (selectedRobotPart.robotPartType == RobotPartType.WheelPart)
-            {
-                selectedRobotPartGameObject.GetComponent<SimpleWheelController>().SetReverseSpinDirection(value);
-            }
-        }
-    }
 
     public static float SnapTo(float a, float snap)
     {
