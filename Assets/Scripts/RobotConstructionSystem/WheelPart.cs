@@ -52,4 +52,10 @@ public class WheelPart : MonoBehaviour
         constructionModeCollider.enabled = true;
     }
 
+    void OnJointBreak(float breakForce)
+    {
+        Debug.Log("A joint has just been broken!, force: " + breakForce);
+        wheelCollider.enabled = false;
+        constructionModeCollider.enabled = true;
+    }
 }

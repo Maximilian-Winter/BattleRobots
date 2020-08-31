@@ -16,6 +16,9 @@ public class SaveLoadManager : MonoBehaviour
     private GameObject saveAndLoadTab;
 
     [SerializeField]
+    private GameObject newButton;
+
+    [SerializeField]
     private GameObject saveButton;
 
     [SerializeField]
@@ -62,6 +65,7 @@ public class SaveLoadManager : MonoBehaviour
 
     public void GoBack()
     {
+        newButton.SetActive(true);
         saveButton.SetActive(true);
         loadButton.SetActive(true);
         backButton.SetActive(false);
@@ -81,6 +85,7 @@ public class SaveLoadManager : MonoBehaviour
 
     public void OpenSaveDialog()
     {
+        newButton.SetActive(false);
         saveButton.SetActive(false);
         loadButton.SetActive(false);
         backButton.SetActive(true);
@@ -91,6 +96,7 @@ public class SaveLoadManager : MonoBehaviour
 
     public void OpenLoadDialog()
     {
+        newButton.SetActive(false);
         saveButton.SetActive(false);
         loadButton.SetActive(false);
         backButton.SetActive(true);

@@ -23,11 +23,6 @@ public class RobotConstructionController : MonoBehaviour
 
 
     [SerializeField]
-    private CameraFollow cameraFollow;
-
-
-
-    [SerializeField]
     private TabGroup mainMenuTabGroup;
 
     [SerializeField]
@@ -92,6 +87,7 @@ public class RobotConstructionController : MonoBehaviour
     private bool isPartSettingsOpen = false;
 
     public RobotData CurrentRobot { get => currentRobot; set => currentRobot = value; }
+    public GameObject RobotRootObject { get => robotRootObject; set => robotRootObject = value; }
 
     // Start is called before the first frame update
     void Start()
@@ -179,8 +175,8 @@ public class RobotConstructionController : MonoBehaviour
                     {
                         selectedRobotPartGameObject.GetComponent<WheelPart>().OnIsPlaced();
                     }
-                    cameraFollow.Target = selectedRobotPartGameObject.transform;
                     selectedRobotPartGameObject.transform.parent = robotBodyGameObject.transform;
+                    RobotRootObject = selectedRobotPartGameObject;
                     AddRobotPartRuntimeObject(selectedRobotPart, selectedRobotPartGameObject);
                 }
             }
@@ -277,6 +273,18 @@ public class RobotConstructionController : MonoBehaviour
         return CurrentRobot;
     }
 
+    public void DeleteRobot()
+    {
+        if (robotParts != null)
+        {
+            foreach (RobotPartRuntimeObject robotPartRuntimeObject in robotParts)
+            {
+                Destroy(robotPartRuntimeObject.robotPartGameObject);
+            }
+        }
+        robotParts = null;
+    }
+
     public void LoadRobot()
     {
         if (CurrentRobot.robotDataEntries != null)
@@ -299,7 +307,7 @@ public class RobotConstructionController : MonoBehaviour
                 selectedRobotPartGameObject.transform.localRotation = robotDataEntry.robotPartLocalRotation;
                 if (selectedRobotPart.robotPartType == RobotPartType.WheelPart)
                 {
-                    selectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = robotRootObject.GetComponent<Rigidbody>();
+                    selectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = RobotRootObject.GetComponent<Rigidbody>();
 
                     selectedRobotPartGameObject.GetComponent<SimpleWheelController>().SetActivateMotor(robotDataEntry.robotPartSettings.boolSettings[0]);
                     selectedRobotPartGameObject.GetComponent<SimpleWheelController>().SetActivateSteering(robotDataEntry.robotPartSettings.boolSettings[1]);
@@ -309,7 +317,7 @@ public class RobotConstructionController : MonoBehaviour
 
                 if (firstEntry)
                 {
-                    robotRootObject = selectedRobotPartGameObject;
+                    RobotRootObject = selectedRobotPartGameObject;
                     firstEntry = false;
                 }
                 AddRobotPartRuntimeObject(selectedRobotPart, selectedRobotPartGameObject);
