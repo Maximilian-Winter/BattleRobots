@@ -91,10 +91,12 @@ public class RobotConstructionController : MonoBehaviour
 
     private bool isPartSettingsOpen = false;
 
+    public RobotData CurrentRobot { get => currentRobot; set => currentRobot = value; }
+
     // Start is called before the first frame update
     void Start()
     {
-        currentRobot = new RobotData();
+        CurrentRobot = new RobotData();
         //AddRobotPartRuntimeObject(robotCorePart, robotCorePartGameObject);
     }
 
@@ -253,30 +255,31 @@ public class RobotConstructionController : MonoBehaviour
         return part;
     }
 
-    public void SaveCurrentRobot()
+    public RobotData SaveCurrentRobot()
     {
-        currentRobot.robotDataEntries = new List<RobotDataEntry>();
-        foreach (RobotPartRuntimeObject robotPartRuntimeObject in robotParts)
+        if (robotParts != null)
         {
-            List<bool> boolPartSettings = new List<bool>();
-
-            if (robotPartRuntimeObject.robotPart.robotPartType == RobotPartType.WheelPart)
+            CurrentRobot.robotDataEntries = new List<RobotDataEntry>();
+            foreach (RobotPartRuntimeObject robotPartRuntimeObject in robotParts)
             {
-                boolPartSettings.Add(robotPartRuntimeObject.robotPartGameObject.GetComponent<SimpleWheelController>().GetActivateMotor());
-                boolPartSettings.Add(robotPartRuntimeObject.robotPartGameObject.GetComponent<SimpleWheelController>().GetActivateSteering());
-                boolPartSettings.Add(robotPartRuntimeObject.robotPartGameObject.GetComponent<SimpleWheelController>().GetReverseSpinDirection());
+                List<bool> boolPartSettings = new List<bool>();
+
+                if (robotPartRuntimeObject.robotPart.robotPartType == RobotPartType.WheelPart)
+                {
+                    boolPartSettings.Add(robotPartRuntimeObject.robotPartGameObject.GetComponent<SimpleWheelController>().GetActivateMotor());
+                    boolPartSettings.Add(robotPartRuntimeObject.robotPartGameObject.GetComponent<SimpleWheelController>().GetActivateSteering());
+                    boolPartSettings.Add(robotPartRuntimeObject.robotPartGameObject.GetComponent<SimpleWheelController>().GetReverseSpinDirection());
+                }
+                CurrentRobot.robotDataEntries.Add(new RobotDataEntry(robotPartRuntimeObject.robotPart.robotPartIdentifier, robotPartRuntimeObject.robotPartGameObject.transform.localPosition, robotPartRuntimeObject.robotPartGameObject.transform.localRotation, new RobotDataEntrySettings(boolPartSettings)));
             }
-            currentRobot.robotDataEntries.Add(new RobotDataEntry(robotPartRuntimeObject.robotPart.robotPartIdentifier, robotPartRuntimeObject.robotPartGameObject.transform.localPosition, robotPartRuntimeObject.robotPartGameObject.transform.localRotation, new RobotDataEntrySettings(boolPartSettings)));
         }
 
-        currentRobot.SaveState(Application.persistentDataPath + "/Saves/Robots/robot01.robot");
-
+        return CurrentRobot;
     }
 
     public void LoadRobot()
     {
-        currentRobot.LoadState(Application.persistentDataPath + "/Saves/Robots/robot01.robot");
-        if (currentRobot.robotDataEntries != null)
+        if (CurrentRobot.robotDataEntries != null)
         {
             if(robotParts != null)
             {
@@ -287,7 +290,7 @@ public class RobotConstructionController : MonoBehaviour
             }
             robotParts = new List<RobotPartRuntimeObject>();
             bool firstEntry = true;
-            foreach (RobotDataEntry robotDataEntry in currentRobot.robotDataEntries)
+            foreach (RobotDataEntry robotDataEntry in CurrentRobot.robotDataEntries)
             {
                 selectedRobotPart = GetRobotPartFromRobotDataEntry(robotDataEntry);
                 selectedRobotPartGameObject = Instantiate(selectedRobotPart.robotPartPrefab);

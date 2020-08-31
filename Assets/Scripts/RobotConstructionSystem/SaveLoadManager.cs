@@ -2,9 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SaveLoadManager : MonoBehaviour
 {
+    [SerializeField]
+    private TabGroup mainMenuTabGroup;
+
+    [SerializeField]
+    private RobotConstructionController robotConstructionController;
+
     [SerializeField]
     private GameObject saveAndLoadTab;
 
@@ -25,9 +32,6 @@ public class SaveLoadManager : MonoBehaviour
 
     [SerializeField]
     private GameObject saveFileButton;
-
-    [SerializeField]
-    private GameObject loadFileButton;
 
     [SerializeField]
     private GameObject fileEntryContainer;
@@ -64,8 +68,9 @@ public class SaveLoadManager : MonoBehaviour
         fileNameInputField.SetActive(false);
         filesScrollView.SetActive(false);
         saveFileButton.SetActive(false);
-        loadFileButton.SetActive(false);
-        
+
+        fileNameInputField.GetComponentInChildren<InputField>().text = "";
+
         foreach (GameObject fileEntry in tempFileEntrys)
         {
             fileEntry.GetComponent<FileEntryUI>().OnClickFileEntry -= LoadFile;
@@ -82,7 +87,6 @@ public class SaveLoadManager : MonoBehaviour
         fileNameInputField.SetActive(true);
         filesScrollView.SetActive(false);
         saveFileButton.SetActive(true);
-        loadFileButton.SetActive(false);
     }
 
     public void OpenLoadDialog()
@@ -93,7 +97,6 @@ public class SaveLoadManager : MonoBehaviour
         fileNameInputField.SetActive(false);
         filesScrollView.SetActive(true);
         saveFileButton.SetActive(false);
-        loadFileButton.SetActive(true);
 
         string[] filePaths = GetHardDriveFolderContent("Saves/Robots/", "robot");
         foreach (string file in filePaths)
@@ -106,9 +109,27 @@ public class SaveLoadManager : MonoBehaviour
         }
     }
 
+    public void SaveFile()
+    {
+        string path = Application.persistentDataPath + "/Saves/Robots/" + fileNameInputField.GetComponentInChildren<InputField>().text + ".robot";
+        RobotData robotData = robotConstructionController.SaveCurrentRobot();
+        if(robotData != null)
+        {
+            robotData.SaveState(path);
+        }
+        mainMenuTabGroup.ResetTabGroup();
+    }
+
     public void LoadFile(string path)
     {
-        Debug.Log(path);
+        RobotData robotData = new RobotData();
+        robotData.LoadState(path);
+        if (robotData != null)
+        {
+            robotConstructionController.CurrentRobot = robotData;
+            robotConstructionController.LoadRobot();
+        }
+        mainMenuTabGroup.ResetTabGroup();
     }
 
 }
