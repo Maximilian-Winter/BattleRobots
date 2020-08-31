@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f736b5092ad252149bf1aec91c987c05, type: 3}
+  m_Name: CurrentRobot
+  m_EditorClassIdentifier: 
+  robotDataEntries:
+  - robotPart: {fileID: 11400000, guid: 19f00bde565d23c43b3790bc492aa626, type: 2}
+    robotPartLocalPosition: {x: -0.10544401, y: 0.95125306, z: -3.9616656}
+    robotPartLocalRotation: {x: -0, y: -0, z: -0, w: 1}
+    robotPartSettings:
+      boolSettings: 
+  - robotPart: {fileID: 11400000, guid: 4a5e1f946cb6299439b67ed7c1fbc042, type: 2}
+    robotPartLocalPosition: {x: 0.394556, y: 1.008, z: -3.6680708}
+    robotPartLocalRotation: {x: -0, y: -0, z: -0, w: 1}
+    robotPartSettings:
+      boolSettings: 010100
+  - robotPart: {fileID: 11400000, guid: 4a5e1f946cb6299439b67ed7c1fbc042, type: 2}
+    robotPartLocalPosition: {x: 0.394556, y: 1.008, z: -4.2933326}
+    robotPartLocalRotation: {x: -0, y: -0, z: -0, w: 1}
+    robotPartSettings:
+      boolSettings: 010000
+  - robotPart: {fileID: 11400000, guid: 4a5e1f946cb6299439b67ed7c1fbc042, type: 2}
+    robotPartLocalPosition: {x: -0.605444, y: 0.98300004, z: -3.675693}
+    robotPartLocalRotation: {x: -0, y: -1, z: -0, w: 0}
+    robotPartSettings:
+      boolSettings: 010101
+  - robotPart: {fileID: 11400000, guid: 4a5e1f946cb6299439b67ed7c1fbc042, type: 2}
+    robotPartLocalPosition: {x: -0.605444, y: 0.98300004, z: -4.299637}
+    robotPartLocalRotation: {x: -0, y: -1, z: -0, w: 0}
+    robotPartSettings:
+      boolSettings: 010001
