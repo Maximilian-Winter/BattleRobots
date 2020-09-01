@@ -33,6 +33,9 @@ public class RobotConstructionController : MonoBehaviour
     [SerializeField]
     private PartSettingsManager partSettingsManager;
 
+    [SerializeField]
+    private TransformGizmoManager transformGizmoManager;
+
 
     private RobotData currentRobot;
 
@@ -106,7 +109,7 @@ public class RobotConstructionController : MonoBehaviour
                             isInPlacingPartMode = false;
                             SelectedRobotPartGameObject.transform.parent = hitInfo.transform.parent;
                             SelectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = hitInfo.transform.GetComponent<Rigidbody>();
-                            SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                            //SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
                             AddRobotPartRuntimeObject(SelectedRobotPart, SelectedRobotPartGameObject);
                         }
                     }
@@ -135,7 +138,7 @@ public class RobotConstructionController : MonoBehaviour
         }
         else
         {
-            if (Input.GetMouseButtonDown(0) && !partsManager.IsPartsOpen && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
+            if (Input.GetMouseButtonDown(0) && !partsManager.IsPartsOpen && !transformGizmoManager.IsHoveringGizmo && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
             {
                 RaycastHit hitInfo = new RaycastHit();
                 bool hit = Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo);
@@ -155,7 +158,11 @@ public class RobotConstructionController : MonoBehaviour
                     }
                     else
                     {
-                        SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                        if(SelectedRobotPartGameObject != null)
+                        {
+                            SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                        }
+                       
                         SelectedRobotPartGameObject = null;
                         SelectedRobotPart = null;
                         partSettingsManager.HidePartSettingsButton();
@@ -164,7 +171,10 @@ public class RobotConstructionController : MonoBehaviour
                 }
                 else
                 {
-                    SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                    if (SelectedRobotPartGameObject != null)
+                    {
+                        SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                    }
                     SelectedRobotPartGameObject = null;
                     SelectedRobotPart = null;
                     partSettingsManager.HidePartSettingsButton();
@@ -202,11 +212,14 @@ public class RobotConstructionController : MonoBehaviour
 
     private RobotPart GetRobotPart(GameObject robotPartGameObject)
     {
-        foreach (RobotPartRuntimeObject robotPartRuntimeObject in RobotParts)
+        if(RobotParts != null)
         {
-            if (robotPartRuntimeObject.robotPartGameObject == robotPartGameObject)
+            foreach (RobotPartRuntimeObject robotPartRuntimeObject in RobotParts)
             {
-                return robotPartRuntimeObject.robotPart;
+                if (robotPartRuntimeObject.robotPartGameObject == robotPartGameObject)
+                {
+                    return robotPartRuntimeObject.robotPart;
+                }
             }
         }
 
