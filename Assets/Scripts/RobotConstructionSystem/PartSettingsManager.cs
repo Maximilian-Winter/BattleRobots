@@ -51,6 +51,11 @@ public class PartSettingsManager : MonoBehaviour
     public void OpenPartSettings()
     {
         IsPartSettingsOpen = true;
+        
+    }
+
+    public void UpdatePartSettings()
+    {
         if (robotConstructionController.SelectedRobotPart != null && robotConstructionController.SelectedRobotPartGameObject != null)
         {
             partSettingsPartName.text = "Part Name: " + robotConstructionController.SelectedRobotPart.robotPartName;
@@ -69,7 +74,9 @@ public class PartSettingsManager : MonoBehaviour
                 partSettingsWheelDirectionToggle.isOn = robotConstructionController.SelectedRobotPartGameObject.GetComponent<SimpleWheelController>().GetReverseSpinDirection();
             }
         }
+
     }
+
 
     public void ClosePartSettings()
     {

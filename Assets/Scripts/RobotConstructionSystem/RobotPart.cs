@@ -6,6 +6,7 @@ public enum RobotPartType
 {
     CorePart,
     WheelPart,
+    HingePart
 }
 
 [CreateAssetMenu(fileName = "new Robot Part", menuName = "Battle Robots/Robot Part", order = 51)]

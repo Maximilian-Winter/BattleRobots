@@ -8,10 +8,6 @@ public class TransformGizmoManager : MonoBehaviour
     private Camera mainCamera;
 
     [SerializeField]
-    private Canvas uiCanvas;
-
-
-    [SerializeField]
     private RobotConstructionController robotConstructionController;
 
     [SerializeField]
@@ -20,33 +16,31 @@ public class TransformGizmoManager : MonoBehaviour
     [SerializeField]
     private LayerMask gizmoLayerMask;
 
+    private RaycastHit hitInfo;
+    private GameObject target;
+    private Vector3 screenSpace;
+    private Vector3 offset;
+
+    bool hit;
+
     [SerializeField]
     private bool isHoveringGizmo;
 
     [SerializeField]
     private bool isDraggingGizmo;
 
-    private Vector3 startPos;
-    private Vector3 lastPos;
-    private Vector3 delta;
-
-    RaycastHit hitInfo;
-    bool hit;
-
     public bool IsHoveringGizmo { get => isHoveringGizmo; set => isHoveringGizmo = value; }
     public bool IsDraggingGizmo { get => isDraggingGizmo; set => isDraggingGizmo = value; }
 
-    // Start is called before the first frame update
+    // Use this for initialization
     void Start()
     {
-        hitInfo = new RaycastHit();
-        hit = false;
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
         if (robotConstructionController.SelectedRobotPartGameObject != null)
         {
             transformGizmoTransform.gameObject.SetActive(true);
@@ -57,8 +51,8 @@ public class TransformGizmoManager : MonoBehaviour
         {
             transformGizmoTransform.gameObject.SetActive(false);
         }
-        
-        if(!IsDraggingGizmo)
+
+        if (!IsDraggingGizmo)
         {
             hitInfo = new RaycastHit();
             hit = Physics.Raycast(mainCamera.ScreenPointToRay(Input.mousePosition), out hitInfo, 1000.0f, gizmoLayerMask);
@@ -75,8 +69,14 @@ public class TransformGizmoManager : MonoBehaviour
             {
                 if (Input.GetMouseButtonDown(0))
                 {
-                    startPos = Input.mousePosition;
-                    lastPos = Input.mousePosition;
+
+
+                    target = GetClickedObject(out hitInfo);
+                    if (target != null)
+                    {
+                        screenSpace = Camera.main.WorldToScreenPoint(target.transform.position);
+                        offset = target.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenSpace.z));
+                    }
                 }
                 else if (Input.GetMouseButton(0))
                 {
@@ -84,70 +84,56 @@ public class TransformGizmoManager : MonoBehaviour
                 }
             }
         }
-       
-
 
         if (Input.GetMouseButtonUp(0))
         {
             IsDraggingGizmo = false;
-            //lastPos = Input.mousePosition;
         }
 
-        if(IsDraggingGizmo)
+        if (IsDraggingGizmo)
         {
-            delta = Input.mousePosition - lastPos;
-            Vector3 direction = (Input.mousePosition - startPos).normalized;
-            Debug.Log("Direction: " + direction);
-            float distanceMoved = Vector3.Dot(delta, direction);
+            Vector3 curScreenSpace = new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenSpace.z);
+            Vector3 curPosition = Camera.main.ScreenToWorldPoint(curScreenSpace) + offset;
 
-            //float distanceMoved = delta.magnitude;
-
-            //Vector3 differenceBetweenCameraAndTransformGizmo = mainCamera.transform.position - transformGizmoTransform.position;
-            //float scaleFactor = ConvertRange(0.0f, 10.0f, 0.0f, 1.0f, differenceBetweenCameraAndTransformGizmo.magnitude);
-           
-            
-
-            if (hit)
+            if (hitInfo.transform.gameObject.tag == "Gizmo")
             {
-                if (hitInfo.transform.gameObject.tag == "Gizmo")
+                TransformGizmoHandleDirection transformGizmoHandleDirection = hitInfo.collider.gameObject.GetComponent<TransformGizmoHandle>().TransformGizmoHandleDirection;
+                if (transformGizmoHandleDirection == TransformGizmoHandleDirection.XDir)
                 {
-                    TransformGizmoHandleDirection transformGizmoHandleDirection = hitInfo.collider.gameObject.GetComponent<TransformGizmoHandle>().TransformGizmoHandleDirection;
-                    if (transformGizmoHandleDirection == TransformGizmoHandleDirection.XDir)
+                    if (robotConstructionController.SelectedRobotPartGameObject != null)
                     {
-                        if (robotConstructionController.SelectedRobotPartGameObject != null)
-                        {
-                            robotConstructionController.SelectedRobotPartGameObject.transform.position += new Vector3(distanceMoved * Time.deltaTime, 0.0f, 0.0f);
-                        }
+                        target.transform.position = new Vector3(curPosition.x, target.transform.position.y, target.transform.position.z);
                     }
-                    if (transformGizmoHandleDirection == TransformGizmoHandleDirection.YDir)
+                }
+                if (transformGizmoHandleDirection == TransformGizmoHandleDirection.YDir)
+                {
+                    if (robotConstructionController.SelectedRobotPartGameObject != null)
                     {
-                        if (robotConstructionController.SelectedRobotPartGameObject != null)
-                        {
-                            robotConstructionController.SelectedRobotPartGameObject.transform.position += new Vector3(0.0f, distanceMoved * Time.deltaTime, 0.0f);
-                        }
+                        target.transform.position = new Vector3(target.transform.position.x, curPosition.y, target.transform.position.z);
                     }
-                    if (transformGizmoHandleDirection == TransformGizmoHandleDirection.ZDir)
+                }
+                if (transformGizmoHandleDirection == TransformGizmoHandleDirection.ZDir)
+                {
+                    if (robotConstructionController.SelectedRobotPartGameObject != null)
                     {
-                        if (robotConstructionController.SelectedRobotPartGameObject != null)
-                        {
-                            robotConstructionController.SelectedRobotPartGameObject.transform.position += new Vector3(0.0f, 0.0f, distanceMoved * Time.deltaTime);
-                        }
+                        target.transform.position = new Vector3(target.transform.position.x, target.transform.position.y, curPosition.z);
                     }
-
                 }
 
-
             }
-            lastPos = Input.mousePosition;
         }
+
     }
 
-    public static float ConvertRange(
-    float originalStart, float originalEnd, // original range
-    float newStart, float newEnd, // desired range
-    float value) // value to convert
+
+    GameObject GetClickedObject(out RaycastHit hit)
     {
-        double scale = (double)(newEnd - newStart) / (originalEnd - originalStart);
-        return (float)(newStart + ((value - originalStart) * scale));
+        GameObject target = null;
+        if (Physics.Raycast(mainCamera.ScreenPointToRay(Input.mousePosition), out hit, Mathf.Infinity, gizmoLayerMask))
+        {
+            target = robotConstructionController.SelectedRobotPartGameObject;
+        }
+
+        return target;
     }
 }
