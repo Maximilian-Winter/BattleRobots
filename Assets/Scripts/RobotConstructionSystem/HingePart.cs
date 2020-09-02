@@ -31,4 +31,10 @@ public class HingePart : MonoBehaviour
         rigidbody.isKinematic = false;
         hingeRigidbody.isKinematic = false;
     }
+
+    public void OnEnterTestingModeAI()
+    {
+        rigidbody.isKinematic = false;
+        hingeRigidbody.isKinematic = false;
+    }
 }

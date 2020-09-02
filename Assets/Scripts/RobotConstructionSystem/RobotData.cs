@@ -10,13 +10,13 @@ public class RobotData
     [SerializeField]
     public List<RobotDataEntry> robotDataEntries;
 
-    public void SaveState(string filePath)
+    public void SaveRobotData(string filePath)
     {
         byte[] bytes = SerializationUtility.SerializeValue(this.robotDataEntries, DataFormat.Binary);
         File.WriteAllBytes(filePath, bytes);
     }
 
-    public void LoadState(string filePath)
+    public void LoadRobotData(string filePath)
     {
         if (!File.Exists(filePath)) return; // No state to load
 

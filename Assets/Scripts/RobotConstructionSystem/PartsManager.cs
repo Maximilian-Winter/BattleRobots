@@ -36,7 +36,7 @@ public class PartsManager : MonoBehaviour
     public void OpenParts()
     {
         IsPartsOpen = true;
-        if (robotConstructionController.RobotParts == null)
+        if (robotConstructionController.GetRobotParts() == null)
         {
             wheelPartsButton.SetIsDeactivated(true);
         }

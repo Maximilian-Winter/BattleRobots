@@ -26,6 +26,11 @@ public class CorePart : MonoBehaviour
         corePartRigidbody.isKinematic = false;
     }
 
+    public void OnEnterTestingModeAI()
+    {
+        corePartRigidbody.isKinematic = false;
+    }
+
     public void OnIsPlaced()
     {
         corePartCollider.enabled = true;

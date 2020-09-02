@@ -47,6 +47,15 @@ public class WheelPart : MonoBehaviour
         wheelCollider.enabled = true;
     }
 
+    public void OnEnterTestingModeAI()
+    {
+        constructionModeCollider.enabled = false;
+        wheelDirectionIndicator.gameObject.SetActive(false);
+        rigidbody.isKinematic = false;
+        easySuspension.enabled = true;
+        wheelCollider.enabled = true;
+    }
+
     public void OnIsPlaced()
     {
         constructionModeCollider.enabled = true;

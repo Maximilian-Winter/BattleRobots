@@ -32,8 +32,8 @@ public class SimpleHingeController : MonoBehaviour
 
     private void OpenHinge()
     {
-        motor.force = 100;
-        motor.targetVelocity = -100;
+        motor.force = 10000;
+        motor.targetVelocity = -1000;
         motor.freeSpin = false;
         hinge.motor = motor;
         hinge.useMotor = true;
@@ -41,8 +41,8 @@ public class SimpleHingeController : MonoBehaviour
 
     private void CloseHinge()
     {
-        motor.force = 100;
-        motor.targetVelocity = 100;
+        motor.force = 10000;
+        motor.targetVelocity = 1000;
         motor.freeSpin = false;
         hinge.motor = motor;
         hinge.useMotor = true;
