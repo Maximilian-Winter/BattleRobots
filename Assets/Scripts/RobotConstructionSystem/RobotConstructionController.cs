@@ -122,10 +122,10 @@ public class RobotConstructionController : MonoBehaviour
                 {
                     if (hitInfo.transform.gameObject.tag == "RobotPart")
                     {
-                        SelectedRobotPartGameObject.layer = LayerMask.NameToLayer("Default");
                         SelectedRobotPartGameObject.transform.position = new Vector3(hitInfo.point.x, SnapTo(hitInfo.point.y, 0.025f), hitInfo.point.z);
                         if (Input.GetMouseButtonDown(0) && !partsManager.IsPartsOpen && !partSettingsManager.IsPartSettingsOpen && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
                         {
+                            SelectedRobotPartGameObject.layer = LayerMask.NameToLayer("Default");
                             isInPlacingPartMode = false;
                             SelectedRobotPartGameObject.transform.parent = RobotBodyGameObject.transform;
                             SelectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = hitInfo.transform.GetComponent<Rigidbody>();
@@ -276,6 +276,14 @@ public class RobotConstructionController : MonoBehaviour
         if (SelectedRobotPartGameObject != null)
         {
             SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+        }
+
+        if (isInPlacingPartMode)
+        {
+            if (SelectedRobotPartGameObject != null)
+            {
+                Destroy(SelectedRobotPartGameObject);
+            }  
         }
 
         partSettingsManager.HidePartSettingsButton();

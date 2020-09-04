@@ -80,7 +80,10 @@ public class TransformGizmoManager : MonoBehaviour
                 }
                 else if (Input.GetMouseButton(0))
                 {
-                    IsDraggingGizmo = true;
+                    if (target != null)
+                    {
+                        IsDraggingGizmo = true;
+                    } 
                 }
             }
         }

@@ -73,6 +73,12 @@ public class PartSettingsManager : MonoBehaviour
                 partSettingsWheelActivateSteeringToggle.isOn = robotConstructionController.SelectedRobotPartGameObject.GetComponent<SimpleWheelController>().GetActivateSteering();
                 partSettingsWheelDirectionToggle.isOn = robotConstructionController.SelectedRobotPartGameObject.GetComponent<SimpleWheelController>().GetReverseSpinDirection();
             }
+            else if (robotConstructionController.SelectedRobotPart.robotPartType == RobotPartType.HingePart)
+            {
+                partSettingsPartType.text = "Part Type: Hinge";
+                partSettingsWheelSettings.SetActive(false);
+            }
+
         }
 
     }
