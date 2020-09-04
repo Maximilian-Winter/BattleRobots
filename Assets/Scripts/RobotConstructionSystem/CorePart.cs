@@ -7,8 +7,12 @@ public class CorePart : MonoBehaviour
 {
     [SerializeField]
     private BoxCollider corePartCollider;
+
     [SerializeField]
     private Rigidbody corePartRigidbody;
+    [SerializeField]
+    private RigidbodyIdentifier rigidbodyIdentifier;
+
 
     [SerializeField]
     private RobotAIMotionController robotAIMotionController;
@@ -19,18 +23,6 @@ public class CorePart : MonoBehaviour
 
     [SerializeField]
     private Seeker seeker;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
     public void OnEnterTestingMode()
     {
@@ -46,8 +38,11 @@ public class CorePart : MonoBehaviour
         aiAttackTrigger.enabled = true;
     }
 
-    public void OnIsPlaced()
+    public void OnIsPlaced(ref int rigidbodyCount)
     {
         corePartCollider.enabled = true;
+
+        rigidbodyIdentifier.Identifier = rigidbodyCount;
+        rigidbodyCount++;
     }
 }

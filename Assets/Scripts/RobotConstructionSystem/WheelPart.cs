@@ -10,8 +10,12 @@ public class WheelPart : MonoBehaviour
     private SimpleWheelController simpleWheelController;
     [SerializeField]
     private SimpleWheelControllerAI simpleWheelControllerAI;
+
     [SerializeField]
     private Rigidbody rigidbody;
+    [SerializeField]
+    private RigidbodyIdentifier rigidbodyIdentifier;
+
     [SerializeField]
     private EasySuspension easySuspension;
     [SerializeField]
@@ -62,9 +66,12 @@ public class WheelPart : MonoBehaviour
         wheelCollider.enabled = true;
     }
 
-    public void OnIsPlaced()
+    public void OnIsPlaced(ref int rigidbodyCount)
     {
         constructionModeCollider.enabled = true;
+
+        rigidbodyIdentifier.Identifier = rigidbodyCount;
+        rigidbodyCount++;
     }
 
     void OnJointBreak(float breakForce)

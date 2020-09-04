@@ -49,12 +49,15 @@ public class RobotConstructionController : MonoBehaviour
     private RobotPart selectedRobotPart;
     private GameObject selectedRobotPartGameObject;
 
+    [SerializeField]
     private List<RobotPartRuntimeObject> robotParts;
 
     private Vector3 placingPosition;
     private float placingDistance = 2.0f;
 
     private bool isInPlacingPartMode = false;
+
+    private int rigidBodyCount = 0;
 
     public GameObject RobotRootObject { get => robotRootObject; set => robotRootObject = value; }
 
@@ -76,6 +79,7 @@ public class RobotConstructionController : MonoBehaviour
     public RobotPart SelectedRobotPart { get => selectedRobotPart; set => selectedRobotPart = value; }
     public GameObject SelectedRobotPartGameObject { get => selectedRobotPartGameObject; set => selectedRobotPartGameObject = value; }
     public GameObject RobotBodyGameObject { get => robotBodyGameObject; set => robotBodyGameObject = value; }
+    public int RigidBodyCount { get => rigidBodyCount; set => rigidBodyCount = value; }
 
     // Start is called before the first frame update
     void Start()
@@ -126,7 +130,7 @@ public class RobotConstructionController : MonoBehaviour
                             SelectedRobotPartGameObject.transform.parent = RobotBodyGameObject.transform;
                             SelectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = hitInfo.transform.GetComponent<Rigidbody>();
                             SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
-                            AddRobotPartRuntimeObject(hitInfo.transform.GetSiblingIndex(), SelectedRobotPart, SelectedRobotPartGameObject);
+                            AddRobotPartRuntimeObject(hitInfo.transform.gameObject.GetComponent<RigidbodyIdentifier>().Identifier, SelectedRobotPart, SelectedRobotPartGameObject);
                             SelectedRobotPartGameObject = null;
                             SelectedRobotPart = null;
                         }
@@ -218,12 +222,17 @@ public class RobotConstructionController : MonoBehaviour
 
         if (robotPart.robotPartType == RobotPartType.CorePart)
         {
-            robotPartGameObject.GetComponent<CorePart>().OnIsPlaced();
+            robotPartGameObject.GetComponent<CorePart>().OnIsPlaced(ref rigidBodyCount);
         }
 
         if (robotPart.robotPartType == RobotPartType.WheelPart)
         {
-            robotPartGameObject.GetComponent<WheelPart>().OnIsPlaced();
+            robotPartGameObject.GetComponent<WheelPart>().OnIsPlaced(ref rigidBodyCount);
+        }
+
+        if (robotPart.robotPartType == RobotPartType.HingePart)
+        {
+            robotPartGameObject.GetComponent<HingePart>().OnIsPlaced(ref rigidBodyCount);
         }
     }
 
@@ -237,6 +246,8 @@ public class RobotConstructionController : MonoBehaviour
             }
         }
         SetRobotParts(null);
+
+        RigidBodyCount = 0;
     }
 
     void RecalculatePlacingPos()

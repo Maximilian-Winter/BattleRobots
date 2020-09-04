@@ -4,14 +4,20 @@ using UnityEngine;
 
 public class HingePart : MonoBehaviour
 {
-
-    [SerializeField]
-    private SimpleHingeController simpleHingeController;
     [SerializeField]
     private Rigidbody rigidbody;
 
     [SerializeField]
     private Rigidbody hingeRigidbody;
+
+    [SerializeField]
+    private RigidbodyIdentifier rigidbodyIdentifier;
+
+    [SerializeField]
+    private RigidbodyIdentifier hingeRigidbodyIdentifier;
+
+    [SerializeField]
+    private SimpleHingeController simpleHingeController;
 
     [SerializeField]
     private SimpleHingeControllerAI simpleHingeControllerAI;
@@ -40,5 +46,13 @@ public class HingePart : MonoBehaviour
         rigidbody.isKinematic = false;
         hingeRigidbody.isKinematic = false;
         simpleHingeControllerAI.enabled = true;
+    }
+
+    public void OnIsPlaced(ref int rigidbodyCount)
+    {
+        rigidbodyIdentifier.Identifier = rigidbodyCount;
+        rigidbodyCount++;
+        hingeRigidbodyIdentifier.Identifier = rigidbodyCount;
+        rigidbodyCount++;
     }
 }
