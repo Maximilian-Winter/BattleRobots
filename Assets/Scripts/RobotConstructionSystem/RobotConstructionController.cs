@@ -1,9 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEditor;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class RobotPartRuntimeObject
 {
@@ -50,12 +46,16 @@ public class RobotConstructionController : MonoBehaviour
     private GameObject selectedRobotPartGameObject;
 
     [SerializeField]
+    private List<GameObject> selectedChildGameObjects;
+
+    [SerializeField]
     private List<RobotPartRuntimeObject> robotParts;
 
     private Vector3 placingPosition;
     private float placingDistance = 2.0f;
 
     private bool isInPlacingPartMode = false;
+    private bool isInTestMode = false;
 
     private int rigidBodyCount = 0;
 
@@ -68,11 +68,11 @@ public class RobotConstructionController : MonoBehaviour
 
     public void SetRobotParts(List<RobotPartRuntimeObject> value)
     {
-        if(value != null && value.Count > 0)
+        if (value != null && value.Count > 0)
         {
             robotRootObject = value[0].robotPartGameObject;
         }
-       
+
         robotParts = value;
     }
 
@@ -89,50 +89,57 @@ public class RobotConstructionController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(isInPlacingPartMode)
+        if(!isInTestMode)
         {
-            if (Input.GetKeyDown(KeyCode.Y))
+            if (isInPlacingPartMode)
             {
-                SelectedRobotPartGameObject.transform.rotation *= Quaternion.Euler(Vector3.up * 90);
-            }
-
-            if (Input.GetKeyDown(KeyCode.X))
-            {
-                SelectedRobotPartGameObject.transform.rotation *= Quaternion.Euler(Vector3.up * -90);
-            }
-
-            if (Input.GetAxis("Mouse ScrollWheel") > 0f) // forward
-            {
-                placingDistance += 0.1f;
-            }
-            else if (Input.GetAxis("Mouse ScrollWheel") < 0f) // backwards
-            {
-                placingDistance -= 0.1f;
-            }
-
-            RecalculatePlacingPos();
-
-            SelectedRobotPartGameObject.transform.position = placingPosition;
-
-            if(GetRobotParts() != null)
-            {
-                RaycastHit hitInfo = new RaycastHit();
-                bool hit = Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo, 1000.0f, buildingLayerMask);
-                if (hit)
+                if (Input.GetKeyDown(KeyCode.Y))
                 {
-                    if (hitInfo.transform.gameObject.tag == "RobotPart")
+                    SelectedRobotPartGameObject.transform.rotation *= Quaternion.Euler(Vector3.up * 90);
+                }
+
+                if (Input.GetKeyDown(KeyCode.X))
+                {
+                    SelectedRobotPartGameObject.transform.rotation *= Quaternion.Euler(Vector3.up * -90);
+                }
+
+                if (Input.GetAxis("Mouse ScrollWheel") > 0f) // forward
+                {
+                    placingDistance += 0.1f;
+                }
+                else if (Input.GetAxis("Mouse ScrollWheel") < 0f) // backwards
+                {
+                    placingDistance -= 0.1f;
+                }
+
+                RecalculatePlacingPos();
+
+                SelectedRobotPartGameObject.transform.position = placingPosition;
+
+                if (GetRobotParts() != null)
+                {
+                    RaycastHit hitInfo = new RaycastHit();
+                    bool hit = Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo, 1000.0f, buildingLayerMask);
+                    if (hit)
                     {
-                        SelectedRobotPartGameObject.transform.position = new Vector3(hitInfo.point.x, SnapTo(hitInfo.point.y, 0.025f), hitInfo.point.z);
-                        if (Input.GetMouseButtonDown(0) && !partsManager.IsPartsOpen && !partSettingsManager.IsPartSettingsOpen && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
+                        if (hitInfo.transform.gameObject.tag == "RobotPart")
                         {
-                            SelectedRobotPartGameObject.layer = LayerMask.NameToLayer("Default");
-                            isInPlacingPartMode = false;
-                            SelectedRobotPartGameObject.transform.parent = RobotBodyGameObject.transform;
-                            SelectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = hitInfo.transform.GetComponent<Rigidbody>();
-                            SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
-                            AddRobotPartRuntimeObject(hitInfo.transform.gameObject.GetComponent<RigidbodyIdentifier>().Identifier, SelectedRobotPart, SelectedRobotPartGameObject);
-                            SelectedRobotPartGameObject = null;
-                            SelectedRobotPart = null;
+                            SelectedRobotPartGameObject.transform.position = new Vector3(hitInfo.point.x, SnapTo(hitInfo.point.y, 0.025f), hitInfo.point.z);
+                            if (Input.GetMouseButtonDown(0) && !partsManager.IsPartsOpen && !partSettingsManager.IsPartSettingsOpen && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
+                            {
+                                SetLayerRecursively(SelectedRobotPartGameObject, LayerMask.NameToLayer("Default"));
+                                isInPlacingPartMode = false;
+                                SelectedRobotPartGameObject.transform.parent = RobotBodyGameObject.transform;
+                                SelectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = hitInfo.transform.GetComponent<Rigidbody>();
+                                SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                                AddRobotPartRuntimeObject(hitInfo.transform.gameObject.GetComponent<RigidbodyIdentifier>().Identifier, SelectedRobotPart, SelectedRobotPartGameObject);
+                                SelectedRobotPartGameObject = null;
+                                SelectedRobotPart = null;
+                            }
+                        }
+                        else
+                        {
+                            SelectedRobotPartGameObject.transform.position = placingPosition;
                         }
                     }
                     else
@@ -142,73 +149,91 @@ public class RobotConstructionController : MonoBehaviour
                 }
                 else
                 {
-                    SelectedRobotPartGameObject.transform.position = placingPosition;
+                    if (Input.GetMouseButtonDown(0) && !partsManager.IsPartsOpen && !partSettingsManager.IsPartSettingsOpen && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
+                    {
+                        SetLayerRecursively(SelectedRobotPartGameObject, LayerMask.NameToLayer("Default"));
+                        isInPlacingPartMode = false;
+                        SelectedRobotPartGameObject.transform.parent = RobotBodyGameObject.transform;
+                        RobotRootObject = SelectedRobotPartGameObject;
+                        SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                        AddRobotPartRuntimeObject(0, SelectedRobotPart, SelectedRobotPartGameObject);
+                        SelectedRobotPartGameObject = null;
+                        SelectedRobotPart = null;
+                    }
                 }
+
             }
             else
             {
-                if (Input.GetMouseButtonDown(0) && !partsManager.IsPartsOpen && !partSettingsManager.IsPartSettingsOpen && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
+                if (Input.GetMouseButtonDown(0) && !partsManager.IsPartsOpen && !transformGizmoManager.IsHoveringGizmo && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
                 {
-
-                    SelectedRobotPartGameObject.layer = LayerMask.NameToLayer("Default");
-                    isInPlacingPartMode = false;
-                    SelectedRobotPartGameObject.transform.parent = RobotBodyGameObject.transform;
-                    RobotRootObject = SelectedRobotPartGameObject;
-                    SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
-                    AddRobotPartRuntimeObject(0, SelectedRobotPart, SelectedRobotPartGameObject);
-                    SelectedRobotPartGameObject = null;
-                    SelectedRobotPart = null;
-                }
-            }
-           
-        }
-        else
-        {
-            if (Input.GetMouseButtonDown(0) && !partsManager.IsPartsOpen && !transformGizmoManager.IsHoveringGizmo && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
-            {
-                RaycastHit hitInfo = new RaycastHit();
-                bool hit = Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo);
-                if (hit)
-                {
-                    if (hitInfo.transform.gameObject.tag == "RobotPart")
+                    RaycastHit hitInfo = new RaycastHit();
+                    bool hit = Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo);
+                    if (hit)
                     {
-                        if(selectedRobotPartGameObject != null)
+                        if (hitInfo.transform.gameObject.tag == "RobotPart")
                         {
-                            SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                            if (selectedRobotPartGameObject != null)
+                            {
+                                SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                            }
+                            SelectedRobotPartGameObject = hitInfo.transform.gameObject.GetComponent<RigidbodyIdentifier>().PartTransform.gameObject;
+                            selectedChildGameObjects = new List<GameObject>();
+                            RigidbodyIdentifier[] rigidbodyIdentifiers = SelectedRobotPartGameObject.GetComponentsInChildren<RigidbodyIdentifier>();
+                            foreach (RigidbodyIdentifier id in rigidbodyIdentifiers)
+                            {
+                                List<GameObject> selectedChilds = GetAllByFixedJointConnectedGameObjects(id.Identifier);
+                                while (selectedChilds.Count > 0)
+                                {
+                                    List<GameObject> childs = selectedChilds;
+                                    selectedChildGameObjects.AddRange(selectedChilds);
+                                    selectedChilds = new List<GameObject>();
+                                    foreach (GameObject child in childs)
+                                    {
+                                        RigidbodyIdentifier[] rigidbodyChildIdentifiers = child.GetComponentsInChildren<RigidbodyIdentifier>();
+                                        foreach (RigidbodyIdentifier childId in rigidbodyChildIdentifiers)
+                                        {
+                                            selectedChilds.AddRange(GetAllByFixedJointConnectedGameObjects(childId.Identifier));
+                                        }
+                                    }
+                                }
+                            }
+                            SetAllSelectedFixedJointsConnectionsToNullAndParentIt();
+                            SelectedRobotPart = GetRobotPart(SelectedRobotPartGameObject);
+                            SelectedRobotPartGameObject.GetComponent<Outline>().enabled = true;
+                            partSettingsManager.ShowPartSettingsButton();
+                            partSettingsManager.UpdatePartSettings();
                         }
-                        SelectedRobotPartGameObject = hitInfo.transform.gameObject.GetComponent<RigidbodyIdentifier>().PartTransform.gameObject;
-                        SelectedRobotPart = GetRobotPart(SelectedRobotPartGameObject);
-                        SelectedRobotPartGameObject.GetComponent<Outline>().enabled = true;
-                        partSettingsManager.ShowPartSettingsButton();
-                        partSettingsManager.UpdatePartSettings();
+                        else
+                        {
+                            if (SelectedRobotPartGameObject != null)
+                            {
+                                SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                            }
+                            ResetAllSelectedFixedJointsConnections();
+                            selectedChildGameObjects = null;
+                            SelectedRobotPartGameObject = null;
+                            SelectedRobotPart = null;
+                            partSettingsManager.HidePartSettingsButton();
+                            mainMenuTabGroup.ResetTabGroup();
+                        }
                     }
                     else
                     {
-                        if(SelectedRobotPartGameObject != null)
+                        if (SelectedRobotPartGameObject != null)
                         {
                             SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
                         }
-                       
+                        ResetAllSelectedFixedJointsConnections();
+                        selectedChildGameObjects = null;
                         SelectedRobotPartGameObject = null;
                         SelectedRobotPart = null;
                         partSettingsManager.HidePartSettingsButton();
                         mainMenuTabGroup.ResetTabGroup();
                     }
                 }
-                else
-                {
-                    if (SelectedRobotPartGameObject != null)
-                    {
-                        SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
-                    }
-                    SelectedRobotPartGameObject = null;
-                    SelectedRobotPart = null;
-                    partSettingsManager.HidePartSettingsButton();
-                    mainMenuTabGroup.ResetTabGroup();
-                }
             }
         }
-        
     }
 
     private void AddRobotPartRuntimeObject(int parentIndex, RobotPart robotPart, GameObject robotPartGameObject)
@@ -257,7 +282,7 @@ public class RobotConstructionController : MonoBehaviour
 
     private RobotPart GetRobotPart(GameObject robotPartGameObject)
     {
-        if(GetRobotParts() != null)
+        if (GetRobotParts() != null)
         {
             foreach (RobotPartRuntimeObject robotPartRuntimeObject in GetRobotParts())
             {
@@ -270,7 +295,23 @@ public class RobotConstructionController : MonoBehaviour
 
         return null;
     }
-    
+
+    private RobotPartRuntimeObject GetRobotPartRuntimeObject(GameObject robotPartGameObject)
+    {
+        if (GetRobotParts() != null)
+        {
+            foreach (RobotPartRuntimeObject robotPartRuntimeObject in GetRobotParts())
+            {
+                if (robotPartRuntimeObject.robotPartGameObject == robotPartGameObject)
+                {
+                    return robotPartRuntimeObject;
+                }
+            }
+        }
+
+        return null;
+    }
+
     public void PlaceNewPart(RobotPart robotPart)
     {
         if (SelectedRobotPartGameObject != null)
@@ -283,7 +324,7 @@ public class RobotConstructionController : MonoBehaviour
             if (SelectedRobotPartGameObject != null)
             {
                 Destroy(SelectedRobotPartGameObject);
-            }  
+            }
         }
 
         partSettingsManager.HidePartSettingsButton();
@@ -295,6 +336,15 @@ public class RobotConstructionController : MonoBehaviour
 
     public void GoIntoTestMode()
     {
+        isInTestMode = true;
+        if(selectedRobotPartGameObject != null)
+        {
+            SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+            ResetAllSelectedFixedJointsConnections();
+            selectedChildGameObjects = null;
+            SelectedRobotPartGameObject = null;
+            SelectedRobotPart = null;
+        }
         if (GetRobotParts() != null)
         {
             if (robotRootObject != null)
@@ -319,9 +369,76 @@ public class RobotConstructionController : MonoBehaviour
                 }
             }
         }
-       
+
     }
 
+    private void SetAllSelectedFixedJointsConnectionsToNullAndParentIt()
+    { 
+        if(SelectedRobotPartGameObject.GetComponent<FixedJoint>() != null)
+        {
+            SelectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = null;
+        }
+        foreach (GameObject selectedChild  in selectedChildGameObjects)
+        {
+            selectedChild.GetComponent<FixedJoint>().connectedBody = null;
+            selectedChild.transform.parent = selectedRobotPartGameObject.transform;
+        }
+    }
+
+    private void ResetAllSelectedFixedJointsConnections()
+    {
+        if (SelectedRobotPartGameObject.GetComponent<FixedJoint>() != null)
+        {
+            SelectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = GetRigidbodyByIndex(RobotBodyGameObject, GetRobotPartRuntimeObject(SelectedRobotPartGameObject).parentIndex);
+        }
+        foreach (GameObject selectedChild in selectedChildGameObjects)
+        {
+            selectedChild.GetComponent<FixedJoint>().connectedBody = GetRigidbodyByIndex(RobotBodyGameObject, GetRobotPartRuntimeObject(selectedChild).parentIndex);
+            selectedChild.transform.parent = RobotBodyGameObject.transform;
+        }
+    }
+
+    public Rigidbody GetRigidbodyByIndex(GameObject robotBodyGameObject, int index)
+    {
+        RigidbodyIdentifier[] identifier = robotBodyGameObject.GetComponentsInChildren<RigidbodyIdentifier>();
+
+        foreach (RigidbodyIdentifier id in identifier)
+        {
+            if (id.Identifier == index)
+            {
+                return id.GetComponent<Rigidbody>();
+            }
+        }
+
+        return null;
+    }
+
+    private List<GameObject> GetAllByFixedJointConnectedGameObjects(int rigidBodyIdentifier)
+    {
+        List<GameObject> byFixedJointsConnectedObjects = new List<GameObject>();
+
+        foreach (RobotPartRuntimeObject robotPartRuntimeObject in GetRobotParts())
+        {
+            if (robotPartRuntimeObject.parentIndex == rigidBodyIdentifier)
+            {
+                if (robotPartRuntimeObject.robotPartGameObject.GetComponent<FixedJoint>() != null)
+                {
+                    byFixedJointsConnectedObjects.Add(robotPartRuntimeObject.robotPartGameObject);
+                }
+            }
+        }
+
+        return byFixedJointsConnectedObjects;
+    }
+
+    public static void SetLayerRecursively(GameObject go, int layerNumber)
+    {
+        if (go == null) return;
+        foreach (Transform trans in go.GetComponentsInChildren<Transform>(true))
+        {
+            trans.gameObject.layer = layerNumber;
+        }
+    }
 
     public static float SnapTo(float a, float snap)
     {

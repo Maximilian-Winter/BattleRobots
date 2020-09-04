@@ -228,7 +228,7 @@ public class SaveLoadManager : MonoBehaviour
             {
                 SelectedRobotPart = partsManager.GetRobotPartFromRobotDataEntry(robotDataEntry);
                 SelectedRobotPartGameObject = Instantiate(SelectedRobotPart.robotPartPrefab);
-                SelectedRobotPartGameObject.layer = LayerMask.NameToLayer("Default");
+                SetLayerRecursively(SelectedRobotPartGameObject, LayerMask.NameToLayer("Default"));
                 SelectedRobotPartGameObject.transform.parent = robotBodyGameObject.transform;
                 SelectedRobotPartGameObject.transform.localPosition = robotDataEntry.robotPartLocalPosition;
                 SelectedRobotPartGameObject.transform.localRotation = robotDataEntry.robotPartLocalRotation;
@@ -297,4 +297,14 @@ public class SaveLoadManager : MonoBehaviour
             robotPartGameObject.GetComponent<HingePart>().OnIsPlaced(ref rigidBodyCount);
         }
     }
+
+    public static void SetLayerRecursively(GameObject go, int layerNumber)
+    {
+        if (go == null) return;
+        foreach (Transform trans in go.GetComponentsInChildren<Transform>(true))
+        {
+            trans.gameObject.layer = layerNumber;
+        }
+    }
+
 }
