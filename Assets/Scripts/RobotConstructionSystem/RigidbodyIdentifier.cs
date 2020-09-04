@@ -5,7 +5,12 @@ using UnityEngine;
 public class RigidbodyIdentifier : MonoBehaviour
 {
     [SerializeField]
-    int identifier;
+    private int identifier;
+
+    [SerializeField]
+    private Transform partTransform;
+
 
     public int Identifier { get => identifier; set => identifier = value; }
+    public Transform PartTransform { get => partTransform; set => partTransform = value; }
 }

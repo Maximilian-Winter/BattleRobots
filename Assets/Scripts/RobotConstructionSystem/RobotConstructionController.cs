@@ -176,7 +176,7 @@ public class RobotConstructionController : MonoBehaviour
                         {
                             SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
                         }
-                        SelectedRobotPartGameObject = hitInfo.transform.gameObject;
+                        SelectedRobotPartGameObject = hitInfo.transform.gameObject.GetComponent<RigidbodyIdentifier>().PartTransform.gameObject;
                         SelectedRobotPart = GetRobotPart(SelectedRobotPartGameObject);
                         SelectedRobotPartGameObject.GetComponent<Outline>().enabled = true;
                         partSettingsManager.ShowPartSettingsButton();
