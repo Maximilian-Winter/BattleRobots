@@ -7,11 +7,13 @@ using UnityEngine.UI;
 
 public class RobotPartRuntimeObject
 {
+    public int parentIndex;
     public RobotPart robotPart;
     public GameObject robotPartGameObject;
 
-    public RobotPartRuntimeObject(RobotPart robotPart, GameObject robotPartGameObject)
+    public RobotPartRuntimeObject(int parentIndex, RobotPart robotPart, GameObject robotPartGameObject)
     {
+        this.parentIndex = parentIndex;
         this.robotPart = robotPart;
         this.robotPartGameObject = robotPartGameObject;
     }
@@ -38,6 +40,9 @@ public class RobotConstructionController : MonoBehaviour
 
     [SerializeField]
     private GameObject robotBodyGameObject;
+
+    [SerializeField]
+    private LayerMask buildingLayerMask;
 
     private GameObject robotRootObject;
 
@@ -108,19 +113,20 @@ public class RobotConstructionController : MonoBehaviour
             if(GetRobotParts() != null)
             {
                 RaycastHit hitInfo = new RaycastHit();
-                bool hit = Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo);
+                bool hit = Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo, 1000.0f, buildingLayerMask);
                 if (hit)
                 {
                     if (hitInfo.transform.gameObject.tag == "RobotPart")
                     {
+                        SelectedRobotPartGameObject.layer = LayerMask.NameToLayer("Default");
                         SelectedRobotPartGameObject.transform.position = new Vector3(hitInfo.point.x, SnapTo(hitInfo.point.y, 0.025f), hitInfo.point.z);
                         if (Input.GetMouseButtonDown(0) && !partsManager.IsPartsOpen && !partSettingsManager.IsPartSettingsOpen && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
                         {
                             isInPlacingPartMode = false;
-                            SelectedRobotPartGameObject.transform.parent = hitInfo.transform.parent;
+                            SelectedRobotPartGameObject.transform.parent = RobotBodyGameObject.transform;
                             SelectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = hitInfo.transform.GetComponent<Rigidbody>();
                             SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
-                            saveLoadManager.AddRobotPartRuntimeObject(GetRobotParts(), SelectedRobotPart, SelectedRobotPartGameObject);
+                            AddRobotPartRuntimeObject(hitInfo.transform.GetSiblingIndex(), SelectedRobotPart, SelectedRobotPartGameObject);
                             SelectedRobotPartGameObject = null;
                             SelectedRobotPart = null;
                         }
@@ -139,11 +145,13 @@ public class RobotConstructionController : MonoBehaviour
             {
                 if (Input.GetMouseButtonDown(0) && !partsManager.IsPartsOpen && !partSettingsManager.IsPartSettingsOpen && !mainMenuTabGroup.MouseIsHoveringTabGroup && !partsMenuTabGroup.MouseIsHoveringTabGroup)
                 {
+
+                    SelectedRobotPartGameObject.layer = LayerMask.NameToLayer("Default");
                     isInPlacingPartMode = false;
                     SelectedRobotPartGameObject.transform.parent = RobotBodyGameObject.transform;
                     RobotRootObject = SelectedRobotPartGameObject;
                     SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
-                    saveLoadManager.AddRobotPartRuntimeObject(GetRobotParts(), SelectedRobotPart, SelectedRobotPartGameObject);
+                    AddRobotPartRuntimeObject(0, SelectedRobotPart, SelectedRobotPartGameObject);
                     SelectedRobotPartGameObject = null;
                     SelectedRobotPart = null;
                 }
@@ -199,6 +207,26 @@ public class RobotConstructionController : MonoBehaviour
         
     }
 
+    private void AddRobotPartRuntimeObject(int parentIndex, RobotPart robotPart, GameObject robotPartGameObject)
+    {
+        if (robotParts == null)
+        {
+            robotParts = new List<RobotPartRuntimeObject>();
+        }
+
+        robotParts.Add(new RobotPartRuntimeObject(parentIndex, robotPart, robotPartGameObject));
+
+        if (robotPart.robotPartType == RobotPartType.CorePart)
+        {
+            robotPartGameObject.GetComponent<CorePart>().OnIsPlaced();
+        }
+
+        if (robotPart.robotPartType == RobotPartType.WheelPart)
+        {
+            robotPartGameObject.GetComponent<WheelPart>().OnIsPlaced();
+        }
+    }
+
     public void DeleteRobot()
     {
         if (GetRobotParts() != null)
@@ -248,8 +276,14 @@ public class RobotConstructionController : MonoBehaviour
 
     public void GoIntoTestMode()
     {
-        if(GetRobotParts() != null)
+        if (GetRobotParts() != null)
         {
+            if (robotRootObject != null)
+            {
+                robotBodyGameObject.tag = "Untagged";
+                robotRootObject.tag = "PlayerTarget";
+            }
+
             foreach (RobotPartRuntimeObject robotPartRuntimeObject in GetRobotParts())
             {
                 if (robotPartRuntimeObject.robotPart.robotPartType == RobotPartType.CorePart)

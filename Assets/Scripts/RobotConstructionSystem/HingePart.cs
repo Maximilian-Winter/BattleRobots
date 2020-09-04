@@ -13,6 +13,9 @@ public class HingePart : MonoBehaviour
     [SerializeField]
     private Rigidbody hingeRigidbody;
 
+    [SerializeField]
+    private SimpleHingeControllerAI simpleHingeControllerAI;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -36,5 +39,6 @@ public class HingePart : MonoBehaviour
     {
         rigidbody.isKinematic = false;
         hingeRigidbody.isKinematic = false;
+        simpleHingeControllerAI.enabled = true;
     }
 }

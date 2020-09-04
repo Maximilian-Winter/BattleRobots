@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Pathfinding;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +9,16 @@ public class CorePart : MonoBehaviour
     private BoxCollider corePartCollider;
     [SerializeField]
     private Rigidbody corePartRigidbody;
+
+    [SerializeField]
+    private RobotAIMotionController robotAIMotionController;
+    [SerializeField]
+    private RobotAIAttackController robotAIAttackController;
+    [SerializeField]
+    private BoxCollider aiAttackTrigger;
+
+    [SerializeField]
+    private Seeker seeker;
 
     // Start is called before the first frame update
     void Start()
@@ -28,7 +39,11 @@ public class CorePart : MonoBehaviour
 
     public void OnEnterTestingModeAI()
     {
+        robotAIMotionController.enabled = true;
+        robotAIAttackController.enabled = true;
+        seeker.enabled = true;
         corePartRigidbody.isKinematic = false;
+        aiAttackTrigger.enabled = true;
     }
 
     public void OnIsPlaced()

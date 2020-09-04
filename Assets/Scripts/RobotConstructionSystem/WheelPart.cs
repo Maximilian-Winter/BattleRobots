@@ -9,6 +9,8 @@ public class WheelPart : MonoBehaviour
     [SerializeField]
     private SimpleWheelController simpleWheelController;
     [SerializeField]
+    private SimpleWheelControllerAI simpleWheelControllerAI;
+    [SerializeField]
     private Rigidbody rigidbody;
     [SerializeField]
     private EasySuspension easySuspension;
@@ -49,6 +51,10 @@ public class WheelPart : MonoBehaviour
 
     public void OnEnterTestingModeAI()
     {
+        simpleWheelControllerAI.enabled = true;
+        simpleWheelControllerAI.SetActivateMotor(simpleWheelController.GetActivateMotor());
+        simpleWheelControllerAI.SetActivateSteering(simpleWheelController.GetActivateSteering());
+        simpleWheelControllerAI.SetReverseSpinDirection(simpleWheelController.GetReverseSpinDirection());
         constructionModeCollider.enabled = false;
         wheelDirectionIndicator.gameObject.SetActive(false);
         rigidbody.isKinematic = false;

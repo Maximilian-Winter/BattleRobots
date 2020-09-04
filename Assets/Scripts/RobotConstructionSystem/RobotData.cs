@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
+[Serializable]
 public class RobotData
 {
     [SerializeField]
@@ -28,13 +29,15 @@ public class RobotData
 [Serializable]
 public class RobotDataEntry
 {
+    public int parentIndex;
     public string robotPartIdentifier;
     public Vector3 robotPartLocalPosition;
     public Quaternion robotPartLocalRotation;
     public RobotDataEntrySettings robotPartSettings;
 
-    public RobotDataEntry(string robotPartIdentifier, Vector3 robotPartLocalPosition, Quaternion robotPartLocalRotation, RobotDataEntrySettings robotPartSetting)
+    public RobotDataEntry(int parentIndex, string robotPartIdentifier, Vector3 robotPartLocalPosition, Quaternion robotPartLocalRotation, RobotDataEntrySettings robotPartSetting)
     {
+        this.parentIndex = parentIndex;
         this.robotPartIdentifier = robotPartIdentifier;
         this.robotPartLocalPosition = robotPartLocalPosition;
         this.robotPartLocalRotation = robotPartLocalRotation;
@@ -45,10 +48,14 @@ public class RobotDataEntry
 [Serializable]
 public class RobotDataEntrySettings
 {
+    public List<float> floatSettings;
     public List<bool> boolSettings;
+    public List<string> stringSettings;
 
-    public RobotDataEntrySettings(List<bool> boolSettings)
+    public RobotDataEntrySettings(List<float> floatSettings, List<bool> boolSettings, List<string> stringSettings)
     {
+        this.floatSettings = floatSettings;
         this.boolSettings = boolSettings;
+        this.stringSettings = stringSettings;
     }
 }

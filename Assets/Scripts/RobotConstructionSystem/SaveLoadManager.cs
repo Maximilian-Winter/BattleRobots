@@ -52,6 +52,10 @@ public class SaveLoadManager : MonoBehaviour
     void Start()
     {
         tempFileEntrys = new List<GameObject>();
+        if (!Directory.Exists(Application.persistentDataPath + "/" + "Saves/Robots/"))
+        {
+            Directory.CreateDirectory(Application.persistentDataPath + "/" + "Saves/Robots/");
+        }
     }
 
     // Update is called once per frame
@@ -140,12 +144,30 @@ public class SaveLoadManager : MonoBehaviour
         }
     }
 
+    public void SaveAsScriptableObject(RobotDataSO robotDataSO, List<RobotPartRuntimeObject> robotParts)
+    {
+        robotDataSO.SetRobotData(SaveRobot(robotParts));
+    }
+
     public List<RobotPartRuntimeObject> LoadFile(string path, GameObject robotBodyGameObject)
     {
         List<RobotPartRuntimeObject> robotParts = new List<RobotPartRuntimeObject>();
 
         RobotData robotData = new RobotData();
         robotData.LoadRobotData(path);
+        if (robotData != null)
+        {
+            robotParts = LoadRobot(robotData, robotBodyGameObject);
+        }
+
+        return robotParts;
+    }
+
+    public List<RobotPartRuntimeObject> LoadFromScriptableObject(RobotDataSO robotDataSO, GameObject robotBodyGameObject)
+    {
+        List<RobotPartRuntimeObject> robotParts = new List<RobotPartRuntimeObject>();
+
+        RobotData robotData = robotDataSO.GetRobotData();
         if (robotData != null)
         {
             robotParts = LoadRobot(robotData, robotBodyGameObject);
@@ -163,9 +185,12 @@ public class SaveLoadManager : MonoBehaviour
         if (robotParts != null)
         {
             CurrentRobot.robotDataEntries = new List<RobotDataEntry>();
+
             foreach (RobotPartRuntimeObject robotPartRuntimeObject in robotParts)
             {
+                List<float> floatPartSettings = new List<float>();
                 List<bool> boolPartSettings = new List<bool>();
+                List<string> stringPartSettings = new List<string>();
 
                 if (robotPartRuntimeObject.robotPart.robotPartType == RobotPartType.WheelPart)
                 {
@@ -173,7 +198,7 @@ public class SaveLoadManager : MonoBehaviour
                     boolPartSettings.Add(robotPartRuntimeObject.robotPartGameObject.GetComponent<SimpleWheelController>().GetActivateSteering());
                     boolPartSettings.Add(robotPartRuntimeObject.robotPartGameObject.GetComponent<SimpleWheelController>().GetReverseSpinDirection());
                 }
-                CurrentRobot.robotDataEntries.Add(new RobotDataEntry(robotPartRuntimeObject.robotPart.robotPartIdentifier, robotPartRuntimeObject.robotPartGameObject.transform.localPosition, robotPartRuntimeObject.robotPartGameObject.transform.localRotation, new RobotDataEntrySettings(boolPartSettings)));
+                CurrentRobot.robotDataEntries.Add(new RobotDataEntry(0, robotPartRuntimeObject.robotPart.robotPartIdentifier, robotPartRuntimeObject.robotPartGameObject.transform.localPosition, robotPartRuntimeObject.robotPartGameObject.transform.localRotation, new RobotDataEntrySettings(floatPartSettings, boolPartSettings, stringPartSettings)));
             }
         }
         else
@@ -199,12 +224,13 @@ public class SaveLoadManager : MonoBehaviour
             {
                 SelectedRobotPart = partsManager.GetRobotPartFromRobotDataEntry(robotDataEntry);
                 SelectedRobotPartGameObject = Instantiate(SelectedRobotPart.robotPartPrefab);
+                SelectedRobotPartGameObject.layer = LayerMask.NameToLayer("Default");
                 SelectedRobotPartGameObject.transform.parent = robotBodyGameObject.transform;
                 SelectedRobotPartGameObject.transform.localPosition = robotDataEntry.robotPartLocalPosition;
                 SelectedRobotPartGameObject.transform.localRotation = robotDataEntry.robotPartLocalRotation;
                 if (SelectedRobotPart.robotPartType == RobotPartType.WheelPart)
                 {
-                    SelectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = RobotRootObject.GetComponent<Rigidbody>();
+                    SelectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = robotBodyGameObject.transform.GetChild(robotDataEntry.parentIndex).GetComponent<Rigidbody>();
 
                     SelectedRobotPartGameObject.GetComponent<SimpleWheelController>().SetActivateMotor(robotDataEntry.robotPartSettings.boolSettings[0]);
                     SelectedRobotPartGameObject.GetComponent<SimpleWheelController>().SetActivateSteering(robotDataEntry.robotPartSettings.boolSettings[1]);
@@ -221,21 +247,21 @@ public class SaveLoadManager : MonoBehaviour
                     RobotRootObject = SelectedRobotPartGameObject;
                     firstEntry = false;
                 }
-                AddRobotPartRuntimeObject(RobotParts, SelectedRobotPart, SelectedRobotPartGameObject);
+                AddRobotPartRuntimeObject(RobotParts, robotDataEntry.parentIndex, SelectedRobotPart, SelectedRobotPartGameObject);
             }
 
         }
         return RobotParts;
     }
 
-    public void AddRobotPartRuntimeObject(List<RobotPartRuntimeObject> robotParts, RobotPart robotPart, GameObject robotPartGameObject)
+    private void AddRobotPartRuntimeObject(List<RobotPartRuntimeObject> robotParts, int parentIndex, RobotPart robotPart, GameObject robotPartGameObject)
     {
         if (robotParts == null)
         {
             robotParts = new List<RobotPartRuntimeObject>();
         }
 
-        robotParts.Add(new RobotPartRuntimeObject(robotPart, robotPartGameObject));
+        robotParts.Add(new RobotPartRuntimeObject(parentIndex, robotPart, robotPartGameObject));
 
         if (robotPart.robotPartType == RobotPartType.CorePart)
         {
@@ -246,5 +272,7 @@ public class SaveLoadManager : MonoBehaviour
         {
             robotPartGameObject.GetComponent<WheelPart>().OnIsPlaced();
         }
+
+
     }
 }
