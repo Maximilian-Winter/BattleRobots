@@ -35,8 +35,9 @@ namespace Pathfinding {
 		/// </summary>
 		/// <param name="timeSlice">Do not return all paths at once if it takes a long time, instead return some and wait until the next call.</param>
 		public void ReturnPaths (bool timeSlice) {
+#if UNITY_EDITOR
 			Profiler.BeginSample("Calling Path Callbacks");
-
+#endif
 			// Hard coded limit on 1.0 ms
 			long targetTick = timeSlice ? System.DateTime.UtcNow.Ticks + 1 * 10000 : 0;
 
@@ -67,7 +68,9 @@ namespace Pathfinding {
 					}
 				}
 			}
+#if UNITY_EDITOR
 			Profiler.EndSample();
+#endif
 		}
 	}
 }

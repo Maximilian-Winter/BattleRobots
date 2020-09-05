@@ -210,7 +210,9 @@ namespace Pathfinding {
 		/// <summary>Recalculate the hierarchical graph and the connected components if any nodes have been marked as dirty</summary>
 		public void RecalculateIfNecessary () {
 			if (numDirtyNodes > 0) {
+#if UNITY_EDITOR
 				Profiler.BeginSample("Recalculate Connected Components");
+#endif
 				for (int i = 0; i < numDirtyNodes; i++) {
 					dirty[dirtyNodes[i].HierarchicalNodeIndex] = 1;
 				}
@@ -240,7 +242,9 @@ namespace Pathfinding {
 				numDirtyNodes = 0;
 				// Recalculate the connected components of the hierarchical nodes
 				FloodFill();
+#if UNITY_EDITOR
 				Profiler.EndSample();
+#endif
 				gizmoVersion++;
 			}
 		}

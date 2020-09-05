@@ -1,8 +1,30 @@
-﻿using System.Collections;
+﻿using OdinSerializer;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
+
+[Serializable]
+public class PlayerPrefsRobotList
+{
+    public List<string> robotList;
+
+    public void SaveRobotListToPlayerPrefs()
+    {
+        byte[] bytes = SerializationUtility.SerializeValue(this.robotList, DataFormat.JSON);
+        string jsonString = System.Text.Encoding.UTF8.GetString(bytes);
+        PlayerPrefs.SetString("RobotList", jsonString);
+    }
+
+    public void LoadRobotListFromPlayerPrefs()
+    {
+        string jsonString = PlayerPrefs.GetString("RobotList");
+        var bytes = System.Text.Encoding.UTF8.GetBytes(jsonString);
+        this.robotList = SerializationUtility.DeserializeValue<List<string>>(bytes, DataFormat.JSON);
+    }
+}
 
 public class SaveLoadManager : MonoBehaviour
 {
@@ -43,11 +65,13 @@ public class SaveLoadManager : MonoBehaviour
     private GameObject fileEntryContainer;
 
     private int rigidBodyCount = 0;
+    
 
     [SerializeField]
     private GameObject fileEntryPrefab;
 
     private List<GameObject> tempFileEntrys;
+    private PlayerPrefsRobotList playerPrefsRobotList;
 
     // Start is called before the first frame update
     void Start()
@@ -112,21 +136,46 @@ public class SaveLoadManager : MonoBehaviour
         filesScrollView.SetActive(true);
         saveFileButton.SetActive(false);
 
-        string[] filePaths = GetHardDriveFolderContent("Saves/Robots/", "robot");
-        foreach (string file in filePaths)
+        if (Application.platform == RuntimePlatform.WindowsEditor || Application.platform == RuntimePlatform.WindowsPlayer)
         {
-            GameObject fileEntryUI = Instantiate(fileEntryPrefab, fileEntryContainer.transform);
-            fileEntryUI.GetComponent<FileEntryUI>().SetFileEntryPath(file);
-            fileEntryUI.GetComponent<FileEntryUI>().SetFileEntryText(Path.GetFileNameWithoutExtension(file));
-            fileEntryUI.GetComponent<FileEntryUI>().OnClickFileEntry += LoadPlayerFile; 
-            tempFileEntrys.Add(fileEntryUI);
+            string[] filePaths = GetHardDriveFolderContent("Saves/Robots/", "robot");
+            foreach (string file in filePaths)
+            {
+                GameObject fileEntryUI = Instantiate(fileEntryPrefab, fileEntryContainer.transform);
+                fileEntryUI.GetComponent<FileEntryUI>().SetFileEntryPath(file);
+                fileEntryUI.GetComponent<FileEntryUI>().SetFileEntryText(Path.GetFileNameWithoutExtension(file));
+                fileEntryUI.GetComponent<FileEntryUI>().OnClickFileEntry += LoadPlayerFile;
+                tempFileEntrys.Add(fileEntryUI);
+            }
         }
+        else
+        {
+            playerPrefsRobotList.LoadRobotListFromPlayerPrefs();
+            foreach (string file in playerPrefsRobotList.robotList)
+            {
+                GameObject fileEntryUI = Instantiate(fileEntryPrefab, fileEntryContainer.transform);
+                fileEntryUI.GetComponent<FileEntryUI>().SetFileEntryPath(file);
+                fileEntryUI.GetComponent<FileEntryUI>().SetFileEntryText(Path.GetFileNameWithoutExtension(file));
+                fileEntryUI.GetComponent<FileEntryUI>().OnClickFileEntry += LoadPlayerFile;
+                tempFileEntrys.Add(fileEntryUI);
+            }
+        }
+
+        
     }
 
     public void SavePlayerFile()
     {
-        string path = Application.persistentDataPath + "/Saves/Robots/" + fileNameInputField.GetComponentInChildren<InputField>().text + ".robot";
-        SaveFile(path, robotConstructionController.GetRobotParts());
+        if (Application.platform == RuntimePlatform.WindowsEditor || Application.platform == RuntimePlatform.WindowsPlayer)
+        {
+            string path = Application.persistentDataPath + "/Saves/Robots/" + fileNameInputField.GetComponentInChildren<InputField>().text + ".robot";
+            SaveFile(path, robotConstructionController.GetRobotParts());
+        }
+        else
+        {
+            string path = fileNameInputField.GetComponentInChildren<InputField>().text;
+            SaveFile(path, robotConstructionController.GetRobotParts());
+        }
         mainMenuTabGroup.ResetTabGroup();
     }
 
@@ -142,8 +191,24 @@ public class SaveLoadManager : MonoBehaviour
         RobotData robotData = SaveRobot(robotParts);
         if (robotData != null)
         {
-            robotData.SaveRobotData(path);
+            if (Application.platform == RuntimePlatform.WindowsEditor || Application.platform == RuntimePlatform.WindowsPlayer)
+            {
+                robotData.SaveRobotDataBinaryToFile(path);
+            }
+            else
+            {
+                robotData.SaveRobotDataJsonToPlayerPrefs(path);
+                UpdatePlayerPrefsRobotList(path);
+            }
+            //robotData.SaveRobotDataJsonToPlayerPrefs("PlayerPrefs.robot");
         }
+    }
+
+    private void UpdatePlayerPrefsRobotList(string path)
+    {
+        playerPrefsRobotList.LoadRobotListFromPlayerPrefs();
+        playerPrefsRobotList.robotList.Add(path);
+        playerPrefsRobotList.SaveRobotListToPlayerPrefs();
     }
 
     public void SaveAsScriptableObject(RobotDataSO robotDataSO, List<RobotPartRuntimeObject> robotParts)
@@ -156,7 +221,14 @@ public class SaveLoadManager : MonoBehaviour
         List<RobotPartRuntimeObject> robotParts = new List<RobotPartRuntimeObject>();
 
         RobotData robotData = new RobotData();
-        robotData.LoadRobotData(path);
+        if (Application.platform == RuntimePlatform.WindowsEditor || Application.platform == RuntimePlatform.WindowsPlayer)
+        {
+            robotData.LoadRobotDataBinaryFromFile(path);
+        }
+        else
+        {
+            robotData.LoadRobotDataJsonFromPlayerPrefs(path);
+        }
         if (robotData != null)
         {
             robotParts = LoadRobot(robotData, robotBodyGameObject);

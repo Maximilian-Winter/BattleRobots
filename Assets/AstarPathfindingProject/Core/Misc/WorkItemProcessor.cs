@@ -322,11 +322,13 @@ namespace Pathfinding {
 			}
 
 			EnsureValidFloodFill();
-
+#if UNITY_EDITOR
 			Profiler.BeginSample("PostUpdate");
+#endif
 			if (anyGraphsDirty) GraphModifier.TriggerEvent(GraphModifier.EventType.PostUpdate);
+#if UNITY_EDITOR
 			Profiler.EndSample();
-
+#endif
 			anyGraphsDirty = false;
 			workItemsInProgressRightNow = false;
 			workItemsInProgress = false;

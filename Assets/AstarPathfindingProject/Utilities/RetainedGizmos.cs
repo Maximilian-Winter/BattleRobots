@@ -317,8 +317,9 @@ namespace Pathfinding.Util {
 
 			// Silently do nothing if the materials are not set
 			if (surfaceMaterial == null || lineMaterial == null) return;
-
+#if UNITY_EDITOR
 			Profiler.BeginSample("Draw Retained Gizmos");
+#endif
 			// First surfaces, then lines
 			for (int matIndex = 0; matIndex <= 1; matIndex++) {
 				var mat = matIndex == 0 ? surfaceMaterial : lineMaterial;
@@ -333,7 +334,9 @@ namespace Pathfinding.Util {
 			}
 
 			usedHashes.Clear();
+#if UNITY_EDITOR
 			Profiler.EndSample();
+#endif
 		}
 
 		/// <summary>

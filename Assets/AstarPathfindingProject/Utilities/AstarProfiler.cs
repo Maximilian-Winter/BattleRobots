@@ -63,7 +63,9 @@ namespace Pathfinding {
 
 		[System.Diagnostics.Conditional("ASTAR_UNITY_PRO_PROFILER")]
 		public static void EndProfile () {
+#if UNITY_EDITOR
 			Profiler.EndSample();
+#endif
 		}
 
 		[System.Diagnostics.Conditional("ProfileAstar")]

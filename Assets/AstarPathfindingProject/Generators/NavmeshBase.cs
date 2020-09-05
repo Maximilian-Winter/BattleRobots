@@ -930,8 +930,9 @@ namespace Pathfinding {
 
 			var wasNotBatching = !batchTileUpdate;
 			if (wasNotBatching) StartBatchTileUpdate();
+#if UNITY_EDITOR
 			Profiler.BeginSample("Tile Initialization");
-
+#endif
 			//Create a new navmesh tile and assign its settings
 			var tile = new NavmeshTile {
 				x = x,
@@ -954,9 +955,9 @@ namespace Pathfinding {
 			tile.vertsInGraphSpace = verts;
 			tile.verts = (Int3[])verts.Clone();
 			transform.Transform(tile.verts);
-
+#if UNITY_EDITOR
 			Profiler.BeginSample("Clear Previous Tiles");
-
+#endif
 			// Create a backing array for the new nodes
 			var nodes = tile.nodes = new TriangleMeshNode[tris.Length/3];
 			// Recycle any nodes that are in the exact same spot after replacing the tile.
@@ -966,32 +967,38 @@ namespace Pathfinding {
 			PrepareNodeRecycling(x, z, tile.vertsInGraphSpace, tris, tile.nodes);
 			// Remove previous tiles (except the nodes that were recycled above)
 			ClearTile(x, z);
-
+#if UNITY_EDITOR
 			Profiler.EndSample();
 			Profiler.EndSample();
 
 			Profiler.BeginSample("Assign Node Data");
-
+#endif
 			// Set tile
 			tiles[x + z*tileXCount] = tile;
 			batchUpdatedTiles.Add(x + z*tileXCount);
 
 			// Create nodes and assign triangle indices
 			CreateNodes(nodes, tile.tris, x + z*tileXCount, (uint)active.data.GetGraphIndex(this));
-
+#if UNITY_EDITOR
 			Profiler.EndSample();
 			Profiler.BeginSample("AABBTree Rebuild");
+#endif
 			tile.bbTree.RebuildFrom(nodes);
+#if UNITY_EDITOR
 			Profiler.EndSample();
 
 			Profiler.BeginSample("Create Node Connections");
+#endif
 			CreateNodeConnections(tile.nodes);
+#if UNITY_EDITOR
 			Profiler.EndSample();
 
 			Profiler.BeginSample("Connect With Neighbours");
-
+#endif
 			if (wasNotBatching) EndBatchTileUpdate();
+#if UNITY_EDITOR
 			Profiler.EndSample();
+#endif
 		}
 
 		protected void CreateNodes (TriangleMeshNode[] buffer, int[] tris, int tileIndex, uint graphIndex) {

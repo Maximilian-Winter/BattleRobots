@@ -227,6 +227,7 @@ namespace Pathfinding {
 		public override void OnInspectorGUI () {
 			// Do some loading and checking
 			if (!LoadStyles()) {
+#if UNITY_EDITOR
 				EditorGUILayout.HelpBox("The GUISkin 'AstarEditorSkin.guiskin' in the folder "+EditorResourceHelper.editorAssets+"/ was not found or some custom styles in it does not exist.\n"+
 					"This file is required for the A* Pathfinding Project editor.\n\n"+
 					"If you are trying to add A* to a new project, please do not copy the files outside Unity, "+
@@ -234,6 +235,7 @@ namespace Pathfinding {
 					"or the 'scripts only' package from the A* Pathfinding Project website.\n\n\n"+
 					"Skin loading is done in the AstarPathEditor.cs --> LoadStyles method", MessageType.Error);
 				return;
+#endif
 			}
 
 #if ASTAR_ATAVISM
@@ -291,7 +293,7 @@ namespace Pathfinding {
 
 			// Dummy styles in case the loading fails
 			var inspectorSkin = EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector);
-
+#if UNITY_EDITOR
 			if (!EditorResourceHelper.LocateEditorAssets()) {
 				return false;
 			}
@@ -307,7 +309,7 @@ namespace Pathfinding {
 			}
 
 			level0AreaStyle = astarSkin.FindStyle("PixelBox");
-
+#endif
 			// If the first style is null, then the rest are likely corrupted as well
 			// Probably due to the user not copying meta files
 			if (level0AreaStyle == null) {
@@ -1063,7 +1065,7 @@ namespace Pathfinding {
 				colors._ConnectionHighLerp = EditorGUILayout.ColorField("Connection Gradient (high)", colors._ConnectionHighLerp);
 
 				colors._MeshEdgeColor = EditorGUILayout.ColorField("Mesh Edge", colors._MeshEdgeColor);
-
+#if UNITY_EDITOR
 				if (EditorResourceHelper.GizmoSurfaceMaterial != null && EditorResourceHelper.GizmoLineMaterial != null) {
 					EditorGUI.BeginChangeCheck();
 					var col1 = EditorResourceHelper.GizmoSurfaceMaterial.color;
@@ -1083,7 +1085,7 @@ namespace Pathfinding {
 						EditorResourceHelper.GizmoLineMaterial.SetColor("_FadeColor", fade * new Color(1, 1, 1, 0.7f));
 					}
 				}
-
+#endif
 				colors._AreaColors = colors._AreaColors ?? new Color[0];
 
 				// Custom Area Colors

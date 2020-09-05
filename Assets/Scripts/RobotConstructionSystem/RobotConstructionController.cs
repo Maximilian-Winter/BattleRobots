@@ -173,9 +173,10 @@ public class RobotConstructionController : MonoBehaviour
                     {
                         if (hitInfo.transform.gameObject.tag == "RobotPart")
                         {
-                            if (selectedRobotPartGameObject != null)
+                            if (SelectedRobotPartGameObject != null)
                             {
                                 SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                                ResetAllSelectedFixedJointsConnections();
                             }
                             SelectedRobotPartGameObject = hitInfo.transform.gameObject.GetComponent<RigidbodyIdentifier>().PartTransform.gameObject;
                             selectedChildGameObjects = new List<GameObject>();
@@ -209,8 +210,9 @@ public class RobotConstructionController : MonoBehaviour
                             if (SelectedRobotPartGameObject != null)
                             {
                                 SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                                ResetAllSelectedFixedJointsConnections();
                             }
-                            ResetAllSelectedFixedJointsConnections();
+                            
                             selectedChildGameObjects = null;
                             SelectedRobotPartGameObject = null;
                             SelectedRobotPart = null;
@@ -223,8 +225,9 @@ public class RobotConstructionController : MonoBehaviour
                         if (SelectedRobotPartGameObject != null)
                         {
                             SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+                            ResetAllSelectedFixedJointsConnections();
                         }
-                        ResetAllSelectedFixedJointsConnections();
+                        
                         selectedChildGameObjects = null;
                         SelectedRobotPartGameObject = null;
                         SelectedRobotPart = null;
@@ -317,6 +320,7 @@ public class RobotConstructionController : MonoBehaviour
         if (SelectedRobotPartGameObject != null)
         {
             SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
+            ResetAllSelectedFixedJointsConnections();
         }
 
         if (isInPlacingPartMode)
@@ -390,6 +394,10 @@ public class RobotConstructionController : MonoBehaviour
         if (SelectedRobotPartGameObject.GetComponent<FixedJoint>() != null)
         {
             SelectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = GetRigidbodyByIndex(RobotBodyGameObject, GetRobotPartRuntimeObject(SelectedRobotPartGameObject).parentIndex);
+            if (SelectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody == null)
+            {
+                Debug.Log("No Connected Body");
+            }
         }
         foreach (GameObject selectedChild in selectedChildGameObjects)
         {

@@ -19,6 +19,7 @@ namespace Pathfinding {
 		public static System.Func<string> getDocumentationURL;
 
 		static void LoadMeta () {
+#if UNITY_EDITOR
 			if (cachedTooltips == null) {
 				var filePath = EditorResourceHelper.editorAssets + "/tooltips.tsv";
 
@@ -30,6 +31,7 @@ namespace Pathfinding {
 					cachedTooltips = new System.Collections.Generic.Dictionary<string, string>();
 				}
 			}
+#endif
 		}
 
 		static string FindURL (System.Type type, string path) {

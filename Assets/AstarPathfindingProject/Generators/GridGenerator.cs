@@ -1514,7 +1514,9 @@ namespace Pathfinding {
 			GridNodeBase[] allNodes = ArrayPool<GridNodeBase>.Claim (chunkWidth*chunkWidth*LayerCount);
 			for (int cx = width/chunkWidth; cx >= 0; cx--) {
 				for (int cz = depth/chunkWidth; cz >= 0; cz--) {
+#if UNITY_EDITOR
 					Profiler.BeginSample("Hash");
+#endif
 					var allNodesCount = GetNodesInRegion(new IntRect(cx*chunkWidth, cz*chunkWidth, (cx+1)*chunkWidth - 1, (cz+1)*chunkWidth - 1), allNodes);
 					var hasher = new RetainedGizmos.Hasher(active);
 					hasher.AddHash(showMeshOutline ? 1 : 0);
@@ -1523,10 +1525,13 @@ namespace Pathfinding {
 					for (int i = 0; i < allNodesCount; i++) {
 						hasher.HashNode(allNodes[i]);
 					}
+#if UNITY_EDITOR
 					Profiler.EndSample();
-
+#endif
 					if (!gizmos.Draw(hasher)) {
+#if UNITY_EDITOR
 						Profiler.BeginSample("Rebuild Retained Gizmo Chunk");
+#endif
 						using (var helper = gizmos.GetGizmoHelper(active, hasher)) {
 							if (showNodeConnections) {
 								for (int i = 0; i < allNodesCount; i++) {
@@ -1538,7 +1543,9 @@ namespace Pathfinding {
 							}
 							if (showMeshSurface || showMeshOutline) CreateNavmeshSurfaceVisualization(allNodes, allNodesCount, helper);
 						}
+#if UNITY_EDITOR
 						Profiler.EndSample();
+#endif
 					}
 				}
 			}

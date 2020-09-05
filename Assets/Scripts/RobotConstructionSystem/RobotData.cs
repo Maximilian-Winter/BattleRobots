@@ -11,18 +11,32 @@ public class RobotData
     [SerializeField]
     public List<RobotDataEntry> robotDataEntries;
 
-    public void SaveRobotData(string filePath)
+    public void SaveRobotDataBinaryToFile(string filePath)
     {
         byte[] bytes = SerializationUtility.SerializeValue(this.robotDataEntries, DataFormat.Binary);
         File.WriteAllBytes(filePath, bytes);
     }
 
-    public void LoadRobotData(string filePath)
+    public void LoadRobotDataBinaryFromFile(string filePath)
     {
         if (!File.Exists(filePath)) return; // No state to load
 
         byte[] bytes = File.ReadAllBytes(filePath);
         this.robotDataEntries = SerializationUtility.DeserializeValue<List<RobotDataEntry>>(bytes, DataFormat.Binary);
+    }
+
+    public void SaveRobotDataJsonToPlayerPrefs(string filePath)
+    {
+        byte[] bytes = SerializationUtility.SerializeValue(this.robotDataEntries, DataFormat.JSON);
+        string jsonString = System.Text.Encoding.UTF8.GetString(bytes);
+        PlayerPrefs.SetString(filePath, jsonString);
+    }
+
+    public void LoadRobotDataJsonFromPlayerPrefs(string filePath)
+    {
+        string jsonString = PlayerPrefs.GetString(filePath); 
+        var bytes = System.Text.Encoding.UTF8.GetBytes(jsonString);
+        this.robotDataEntries = SerializationUtility.DeserializeValue<List<RobotDataEntry>>(bytes, DataFormat.JSON);
     }
 }
 

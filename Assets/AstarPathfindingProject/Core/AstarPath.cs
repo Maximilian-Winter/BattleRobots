@@ -787,15 +787,17 @@ public class AstarPath : VersionedMonoBehaviour {
 			if (showNavGraphs && !manualDebugFloorRoof) {
 				RecalculateDebugLimits();
 			}
-
+#if UNITY_EDITOR
 			Profiler.BeginSample("Graph.OnDrawGizmos");
+#endif
 			// Loop through all graphs and draw their gizmos
 			for (int i = 0; i < graphs.Length; i++) {
 				if (graphs[i] != null && graphs[i].drawGizmos)
 					graphs[i].OnDrawGizmos(gizmos, showNavGraphs);
 			}
+#if UNITY_EDITOR
 			Profiler.EndSample();
-
+#endif
 			if (showNavGraphs) {
 				euclideanEmbedding.OnDrawGizmos();
 				if (debugMode == GraphDebugMode.HierarchicalNode) hierarchicalGraph.OnDrawGizmos(gizmos);
@@ -876,13 +878,16 @@ public class AstarPath : VersionedMonoBehaviour {
 			// Return all paths before starting blocking actions
 			// since these might change the graph and make returned paths invalid (at least the nodes)
 			pathReturnQueue.ReturnPaths(false);
-
+#if UNITY_EDITOR
 			Profiler.BeginSample("Work Items");
+#endif
 			if (workItems.ProcessWorkItems(force)) {
 				// At this stage there are no more work items, resume pathfinding threads
 				workItemLock.Release();
 			}
+#if UNITY_EDITOR
 			Profiler.EndSample();
+#endif
 		}
 	}
 
@@ -992,7 +997,7 @@ public class AstarPath : VersionedMonoBehaviour {
 #endif
 	}
 
-	#region GraphUpdateMethods
+#region GraphUpdateMethods
 
 	/// <summary>
 	/// Will apply queued graph updates as soon as possible, regardless of <see cref="batchGraphUpdates"/>.
@@ -1122,7 +1127,7 @@ public class AstarPath : VersionedMonoBehaviour {
 		}
 	}
 
-	#endregion
+#endregion
 
 	/// <summary>
 	/// Forces work items to complete in a single frame.
@@ -1435,7 +1440,7 @@ public class AstarPath : VersionedMonoBehaviour {
 		active = null;
 	}
 
-	#region ScanMethods
+#region ScanMethods
 
 	/// <summary>
 	/// Floodfills starting from the specified node.
@@ -1585,8 +1590,10 @@ public class AstarPath : VersionedMonoBehaviour {
 	public void Scan (NavGraph[] graphsToScan = null) {
 		var prevProgress = new Progress();
 
+#if UNITY_EDITOR
 		Profiler.BeginSample("Scan");
 		Profiler.BeginSample("Init");
+#endif
 		foreach (var p in ScanAsync(graphsToScan)) {
 			if (prevProgress.description != p.description) {
 #if !NETFX_CORE && UNITY_EDITOR
@@ -1598,8 +1605,10 @@ public class AstarPath : VersionedMonoBehaviour {
 #endif
 			}
 		}
+#if UNITY_EDITOR
 		Profiler.EndSample();
 		Profiler.EndSample();
+#endif
 	}
 
 	/// <summary>
@@ -1803,7 +1812,7 @@ public class AstarPath : VersionedMonoBehaviour {
 		}
 	}
 
-	#endregion
+#endregion
 
 	private static int waitForPathDepth = 0;
 

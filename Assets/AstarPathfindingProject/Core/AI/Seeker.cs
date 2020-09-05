@@ -257,13 +257,17 @@ namespace Pathfinding {
 
 				for (int i = 0; i < modifiers.Count; i++) modifiers[i].PreProcess(path);
 			} else if (pass == ModifierPass.PostProcess) {
+#if UNITY_EDITOR
 				Profiler.BeginSample("Running Path Modifiers");
+#endif
 				// Call delegates if they exist
 				if (postProcessPath != null) postProcessPath(path);
 
 				// Loop through all modifiers and apply post processing
 				for (int i = 0; i < modifiers.Count; i++) modifiers[i].Apply(path);
+#if UNITY_EDITOR
 				Profiler.EndSample();
+#endif
 			}
 		}
 
