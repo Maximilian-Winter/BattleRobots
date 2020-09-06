@@ -23,6 +23,12 @@ public class RobotConstructionController : MonoBehaviour
     private TabGroup partsMenuTabGroup;
 
     [SerializeField]
+    private TabButton fileMenuButton;
+
+    [SerializeField]
+    private TabButton partsMenuButton;
+
+    [SerializeField]
     private PartsManager partsManager;
 
     [SerializeField]
@@ -50,6 +56,9 @@ public class RobotConstructionController : MonoBehaviour
 
     [SerializeField]
     private List<RobotPartRuntimeObject> robotParts;
+
+    [SerializeField]
+    private RobotData tempForTestingMode;
 
     private Vector3 placingPosition;
     private float placingDistance = 2.0f;
@@ -270,7 +279,7 @@ public class RobotConstructionController : MonoBehaviour
         {
             foreach (RobotPartRuntimeObject robotPartRuntimeObject in GetRobotParts())
             {
-                Destroy(robotPartRuntimeObject.robotPartGameObject);
+                DestroyImmediate(robotPartRuntimeObject.robotPartGameObject);
             }
         }
         SetRobotParts(null);
@@ -338,10 +347,24 @@ public class RobotConstructionController : MonoBehaviour
         isInPlacingPartMode = true;
     }
 
+    public void ToggleTestMode()
+    {
+        if(!isInTestMode)
+        {
+            GoIntoTestMode();
+        }
+        else
+        {
+            LeaveTestMode();
+        }
+    }
+
     public void GoIntoTestMode()
     {
         isInTestMode = true;
-        if(selectedRobotPartGameObject != null)
+        fileMenuButton.SetIsDeactivated(true);
+        partsMenuButton.SetIsDeactivated(true);
+        if (selectedRobotPartGameObject != null)
         {
             SelectedRobotPartGameObject.GetComponent<Outline>().enabled = false;
             ResetAllSelectedFixedJointsConnections();
@@ -356,6 +379,7 @@ public class RobotConstructionController : MonoBehaviour
                 robotBodyGameObject.tag = "Untagged";
                 robotRootObject.tag = "PlayerTarget";
             }
+            tempForTestingMode = saveLoadManager.SaveRobot(GetRobotParts());
 
             foreach (RobotPartRuntimeObject robotPartRuntimeObject in GetRobotParts())
             {
@@ -374,6 +398,16 @@ public class RobotConstructionController : MonoBehaviour
             }
         }
 
+    }
+
+    public void LeaveTestMode()
+    {
+        isInTestMode = false;
+        fileMenuButton.SetIsDeactivated(false);
+        partsMenuButton.SetIsDeactivated(false);
+        DeleteRobot();
+        SetRobotParts(saveLoadManager.LoadRobot(tempForTestingMode, robotBodyGameObject));
+        RigidBodyCount = saveLoadManager.GetRigidBodyCount();
     }
 
     private void SetAllSelectedFixedJointsConnectionsToNullAndParentIt()

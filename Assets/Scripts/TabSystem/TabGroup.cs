@@ -49,9 +49,18 @@ public class TabGroup : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         }
     }
 
-    public void OnTabDeactivation(TabButton tabButton)
+    public void OnTabSetIsDeactivated(TabButton tabButton)
     {
-        tabButton.SetBackgroundSprite(tabDeactivated);
+        if(tabButton.GetIsDeactivated())
+        {
+            tabButton.SetBackgroundSprite(tabDeactivated);
+            tabButton.gameObject.SetActive(false);
+        }
+        else
+        {
+            tabButton.SetBackgroundSprite(tabIdle);
+            tabButton.gameObject.SetActive(true);
+        }
     }
 
     public void OnTabEnter(TabButton tabButton)
@@ -126,7 +135,7 @@ public class TabGroup : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
         {
             foreach (TabButton tabButton in tabButtons)
             {
-                if (!tabButton.HideTillExplictActivated)
+                if (!tabButton.HideTillExplictActivated && !tabButton.GetIsDeactivated())
                 {
                     tabButton.gameObject.SetActive(true);
                 }

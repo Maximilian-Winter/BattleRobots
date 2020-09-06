@@ -8,8 +8,22 @@ using UnityEngine;
 [Serializable]
 public class RobotData
 {
+    public RobotData()
+    {
+        this.robotDataEntries = null;
+    }
+
+    public RobotData(List<RobotDataEntry> robotDataEntries)
+    {
+        this.robotDataEntries = robotDataEntries;
+    }
+
+
+
     [SerializeField]
     public List<RobotDataEntry> robotDataEntries;
+
+    
 
     public void SaveRobotDataBinaryToFile(string filePath)
     {
@@ -25,19 +39,20 @@ public class RobotData
         this.robotDataEntries = SerializationUtility.DeserializeValue<List<RobotDataEntry>>(bytes, DataFormat.Binary);
     }
 
-    public void SaveRobotDataJsonToPlayerPrefs(string filePath)
+    public void SaveRobotDataJsonToPlayerPrefs(string key)
     {
         byte[] bytes = SerializationUtility.SerializeValue(this.robotDataEntries, DataFormat.JSON);
         string jsonString = System.Text.Encoding.UTF8.GetString(bytes);
-        PlayerPrefs.SetString(filePath, jsonString);
+        PlayerPrefs.SetString(key, jsonString);
     }
 
-    public void LoadRobotDataJsonFromPlayerPrefs(string filePath)
+    public void LoadRobotDataJsonFromPlayerPrefs(string key)
     {
-        string jsonString = PlayerPrefs.GetString(filePath); 
+        string jsonString = PlayerPrefs.GetString(key); 
         var bytes = System.Text.Encoding.UTF8.GetBytes(jsonString);
         this.robotDataEntries = SerializationUtility.DeserializeValue<List<RobotDataEntry>>(bytes, DataFormat.JSON);
     }
+
 }
 
 [Serializable]
@@ -56,6 +71,15 @@ public class RobotDataEntry
         this.robotPartLocalPosition = robotPartLocalPosition;
         this.robotPartLocalRotation = robotPartLocalRotation;
         this.robotPartSettings = robotPartSetting;
+    }
+
+    public RobotDataEntry()
+    {
+        this.parentIndex = 0;
+        this.robotPartIdentifier = "";
+        this.robotPartLocalPosition = Vector3.zero;
+        this.robotPartLocalRotation = Quaternion.identity;
+        this.robotPartSettings = null;
     }
 }
 

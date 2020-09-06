@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
@@ -73,9 +74,21 @@ public class SaveLoadManager : MonoBehaviour
     private List<GameObject> tempFileEntrys;
     private PlayerPrefsRobotList playerPrefsRobotList;
 
+    public int GetRigidBodyCount()
+    {
+        return rigidBodyCount;
+    }
+
+    public void SetRigidBodyCount(int value)
+    {
+        rigidBodyCount = value;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
+        playerPrefsRobotList = new PlayerPrefsRobotList();
+        playerPrefsRobotList.robotList = new List<string>();
         tempFileEntrys = new List<GameObject>();
         if (!Directory.Exists(Application.persistentDataPath + "/" + "Saves/Robots/"))
         {
@@ -155,7 +168,7 @@ public class SaveLoadManager : MonoBehaviour
             {
                 GameObject fileEntryUI = Instantiate(fileEntryPrefab, fileEntryContainer.transform);
                 fileEntryUI.GetComponent<FileEntryUI>().SetFileEntryPath(file);
-                fileEntryUI.GetComponent<FileEntryUI>().SetFileEntryText(Path.GetFileNameWithoutExtension(file));
+                fileEntryUI.GetComponent<FileEntryUI>().SetFileEntryText(file);
                 fileEntryUI.GetComponent<FileEntryUI>().OnClickFileEntry += LoadPlayerFile;
                 tempFileEntrys.Add(fileEntryUI);
             }
@@ -181,8 +194,9 @@ public class SaveLoadManager : MonoBehaviour
 
     public void LoadPlayerFile(string path)
     {
+        robotConstructionController.DeleteRobot();
         robotConstructionController.SetRobotParts(LoadFile(path, robotConstructionController.RobotBodyGameObject));
-        robotConstructionController.RigidBodyCount = rigidBodyCount;
+        robotConstructionController.RigidBodyCount = GetRigidBodyCount();
         mainMenuTabGroup.ResetTabGroup();
     }
 
@@ -207,6 +221,10 @@ public class SaveLoadManager : MonoBehaviour
     private void UpdatePlayerPrefsRobotList(string path)
     {
         playerPrefsRobotList.LoadRobotListFromPlayerPrefs();
+        if(playerPrefsRobotList.robotList == null)
+        {
+            playerPrefsRobotList.robotList = new List<string>();
+        }
         playerPrefsRobotList.robotList.Add(path);
         playerPrefsRobotList.SaveRobotListToPlayerPrefs();
     }
@@ -287,15 +305,14 @@ public class SaveLoadManager : MonoBehaviour
     {
         List<RobotPartRuntimeObject> RobotParts;
         RobotParts = new List<RobotPartRuntimeObject>();
-        RobotPart SelectedRobotPart = new RobotPart();
+        RobotPart SelectedRobotPart = null;
         GameObject SelectedRobotPartGameObject = new GameObject();
         GameObject RobotRootObject = new GameObject();
 
-        rigidBodyCount = 0;
+        SetRigidBodyCount(0);
 
         if (CurrentRobot.robotDataEntries != null)
         {
-            bool firstEntry = true;
             foreach (RobotDataEntry robotDataEntry in CurrentRobot.robotDataEntries)
             {
                 SelectedRobotPart = partsManager.GetRobotPartFromRobotDataEntry(robotDataEntry);
@@ -317,12 +334,6 @@ public class SaveLoadManager : MonoBehaviour
                     SelectedRobotPartGameObject.GetComponent<FixedJoint>().connectedBody = GetRigidbodyByIndex(robotBodyGameObject, robotDataEntry.parentIndex);
                 }
 
-
-                if (firstEntry)
-                {
-                    RobotRootObject = SelectedRobotPartGameObject;
-                    firstEntry = false;
-                }
                 AddRobotPartRuntimeObject(RobotParts, robotDataEntry.parentIndex, SelectedRobotPart, SelectedRobotPartGameObject);
             }
 

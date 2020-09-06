@@ -26,7 +26,7 @@ public class TabButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHandl
     public void SetIsDeactivated(bool value)
     {
         isDeactivated = value;
-        tapGroup.OnTabDeactivation(this);
+        tapGroup.OnTabSetIsDeactivated(this);
     }
 
     void OnEnable()
